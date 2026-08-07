@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f1e8;
+  --foreground: #172322;
+  --color-paper: #f7f1e8;
+  --color-shell: #fffaf1;
+  --color-soft: #ebe2d5;
+  --color-ink: #172322;
+  --color-muted: #65706b;
+  --color-forest: #2e5f4d;
+  --color-ocean: #0f3a44;
+  --color-teal: #3a777a;
+  --color-copper: #b46a42;
+  --color-gold: #c8a46d;
+  --color-rust: #a95e39;
+  --color-clay: #6f4635;
+  --color-line: #d8cbbb;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-serif: var(--font-cormorant);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::selection {
+  background: #0f3a44;
+  color: white;
+}
+
+img {
+  max-width: 100%;
+}
+
+.font-serif {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+.section-anchor {
+  scroll-margin-top: 96px;
+}
