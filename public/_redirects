@@ -1,0 +1,5 @@
+/acomodacoes/ /casas/ 301
+/acomodacoes/* /casas/:splat 301
+/hospedagens/ /casas/ 301
+/hospedagens/* /casas/:splat 301
+/sobre/ / 301

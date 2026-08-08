@@ -77,7 +77,7 @@ export function HouseGallery({
       <div className="grid gap-2">
         <div
           className={cn(
-            "group relative overflow-hidden bg-[var(--color-ocean)]",
+            "group relative overflow-hidden bg-[var(--color-ocean-strong)]",
             compact ? "aspect-[4/5] sm:aspect-square" : "aspect-[4/5] md:aspect-[16/11]",
           )}
           onTouchStart={(event) => onTouchStart(event.changedTouches[0].clientX)}
@@ -112,7 +112,7 @@ export function HouseGallery({
               </div>
             ))}
           </div>
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(15,58,68,0.03),rgba(15,58,68,0.24))]" />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(2,150,154,0.03),rgba(1,72,75,0.24))]" />
           <div className="absolute right-3 top-3 z-20 rounded-full bg-black/45 px-3 py-1 text-[0.68rem] font-semibold text-white backdrop-blur">
             {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
           </div>

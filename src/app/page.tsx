@@ -20,8 +20,12 @@ export default function Home() {
     "@context": "https://schema.org",
     "@type": "LodgingBusiness",
     name: siteConfig.name,
-    url: siteConfig.url,
-    image: `${siteConfig.url}${siteConfig.ogImage}`,
+    ...(siteConfig.url
+      ? {
+          url: siteConfig.url,
+          image: `${siteConfig.url}${siteConfig.ogImage}`,
+        }
+      : {}),
     telephone: siteConfig.phone,
     address: {
       "@type": "PostalAddress",

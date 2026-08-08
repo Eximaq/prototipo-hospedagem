@@ -7,7 +7,7 @@ export const metadata = createMetadata({
   title: "As casas",
   description:
     "Compare Casa Turquesa e Casa Corais Milagres, veja galerias e consulte disponibilidade pelo WhatsApp.",
-  path: "/casas",
+  path: "/casas/",
 });
 
 export default function HousesPage() {

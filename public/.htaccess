@@ -1,0 +1,7 @@
+RewriteEngine On
+
+RewriteRule ^acomodacoes/?$ /casas/ [R=301,L]
+RewriteRule ^acomodacoes/(.+)/?$ /casas/$1/ [R=301,L]
+RewriteRule ^hospedagens/?$ /casas/ [R=301,L]
+RewriteRule ^hospedagens/(.+)/?$ /casas/$1/ [R=301,L]
+RewriteRule ^sobre/?$ / [R=301,L]

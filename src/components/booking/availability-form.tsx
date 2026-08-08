@@ -1,9 +1,47 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { CalendarDays, MessageCircle, Users } from "lucide-react";
-import { houses } from "@/data/houses";
+import { FormEvent, useMemo, useState } from "react";
+import {
+  Bath,
+  BedDouble,
+  CalendarDays,
+  Home,
+  MapPin,
+  MessageCircle,
+  Sparkles,
+  Users,
+  Waves,
+} from "lucide-react";
+import { DateRangeSelector } from "@/components/availability/date-range-selector";
+import { GuestSelector } from "@/components/booking/guest-selector";
+import { ResponsibleGuestForm } from "@/components/booking/responsible-guest-form";
+import {
+  compareISODate,
+  getTodayISO,
+  isISODate,
+} from "@/lib/availability/date-utils";
+import {
+  isRangeAvailableFromRanges,
+} from "@/lib/availability/merge";
+import { formatCPF, isValidCPF } from "@/lib/cpf";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import type {
+  AvailabilityRange,
+  PublicHouseAvailability,
+} from "@/lib/availability/types";
+
+export type BookingHouseOption = {
+  id: string;
+  slug: string;
+  label: string;
+  name: string;
+  locationLabel: string;
+  guests: number;
+  bedrooms: number;
+  bathrooms: number;
+  pool: boolean;
+  highlights: string[];
+};
 
 type FormState = {
   houseSlug: string;
@@ -11,87 +49,126 @@ type FormState = {
   checkOut: string;
   adults: number;
   children: number;
+  responsibleName: string;
+  cpf: string;
+  birthDate: string;
   notes: string;
 };
 
-const storageKey = "casas-milagres-availability";
-
-function todayIso() {
-  return new Date().toISOString().split("T")[0];
-}
+type FormErrors = Partial<Record<keyof FormState | "guests" | "calendar", string>>;
 
 export function AvailabilityForm({
   selectedHouseSlug,
   title = "Consultar disponibilidade",
   layout = "stacked",
+  houses,
+  availability,
 }: {
   selectedHouseSlug?: string;
   title?: string;
   layout?: "stacked" | "horizontal";
+  houses: BookingHouseOption[];
+  availability: PublicHouseAvailability[];
 }) {
+  const initialHouseSlug = selectedHouseSlug || houses[0]?.slug || "";
   const [form, setForm] = useState<FormState>({
-    houseSlug: selectedHouseSlug || houses[0]?.slug || "",
+    houseSlug: initialHouseSlug,
     checkIn: "",
     checkOut: "",
     adults: 2,
     children: 0,
+    responsibleName: "",
+    cpf: "",
+    birthDate: "",
     notes: "",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState | "guests", string>>>({});
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(storageKey);
-    if (!saved) return;
-
-    try {
-      const parsed = JSON.parse(saved) as FormState;
-      queueMicrotask(() => {
-        setForm((current) => ({
-          ...current,
-          ...parsed,
-          houseSlug: selectedHouseSlug || parsed.houseSlug || current.houseSlug,
-        }));
-      });
-    } catch {
-      window.localStorage.removeItem(storageKey);
-    }
-  }, [selectedHouseSlug]);
-
-  useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify(form));
-  }, [form]);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const selectedHouse = useMemo(
     () => houses.find((house) => house.slug === form.houseSlug),
-    [form.houseSlug],
+    [form.houseSlug, houses],
   );
 
+  const unavailableRanges = useMemo<AvailabilityRange[]>(() => {
+    if (!selectedHouse) return [];
+    return (
+      availability.find((entry) => entry.houseId === selectedHouse.id)?.unavailableRanges ||
+      []
+    );
+  }, [availability, selectedHouse]);
+
   const guests = form.adults + form.children;
+  const isHorizontal = layout === "horizontal";
+  const today = getTodayISO();
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
-    setErrors((current) => ({ ...current, [key]: undefined, guests: undefined }));
+    setErrors((current) => ({
+      ...current,
+      [key]: undefined,
+      guests: undefined,
+      calendar: undefined,
+    }));
+  }
+
+  function updateHouseSlug(value: string) {
+    setForm((current) => ({
+      ...current,
+      houseSlug: value,
+      checkIn: "",
+      checkOut: "",
+    }));
+    setErrors((current) => ({ ...current, houseSlug: undefined, calendar: undefined }));
+  }
+
+  function updateGuests(field: "adults" | "children", value: number) {
+    updateField(field, Number.isFinite(value) ? value : 0);
+  }
+
+  function updateResponsibleField(
+    field: "responsibleName" | "cpf" | "birthDate" | "notes",
+    value: string,
+  ) {
+    updateField(field, field === "cpf" ? formatCPF(value) : value);
   }
 
   function validate() {
-    const nextErrors: Partial<Record<keyof FormState | "guests", string>> = {};
-    const minDate = todayIso();
+    const nextErrors: FormErrors = {};
 
     if (!form.houseSlug || !selectedHouse) nextErrors.houseSlug = "Selecione uma casa.";
-    if (!form.checkIn) nextErrors.checkIn = "Informe a data de entrada.";
-    if (!form.checkOut) nextErrors.checkOut = "Informe a data de saída.";
-    if (form.checkIn && form.checkIn < minDate) {
+    if (!form.checkIn) nextErrors.checkIn = "Selecione a data de entrada.";
+    if (!form.checkOut) nextErrors.checkOut = "Selecione a data de saída.";
+    if (form.checkIn && compareISODate(form.checkIn, today) < 0) {
       nextErrors.checkIn = "A entrada não pode ser uma data passada.";
     }
-    if (form.checkOut && form.checkOut < minDate) {
+    if (form.checkOut && compareISODate(form.checkOut, today) < 0) {
       nextErrors.checkOut = "A saída não pode ser uma data passada.";
     }
-    if (form.checkIn && form.checkOut && form.checkOut <= form.checkIn) {
+    if (form.checkIn && form.checkOut && compareISODate(form.checkOut, form.checkIn) <= 0) {
       nextErrors.checkOut = "A saída deve ser posterior à entrada.";
     }
+    if (
+      form.checkIn &&
+      form.checkOut &&
+      !isRangeAvailableFromRanges(form.checkIn, form.checkOut, unavailableRanges)
+    ) {
+      nextErrors.calendar = "Esse intervalo atravessa uma data indisponível.";
+    }
     if (form.adults < 1) nextErrors.adults = "Informe pelo menos 1 adulto.";
+    if (form.children < 0) nextErrors.children = "Informe uma quantidade válida.";
     if (selectedHouse && guests > selectedHouse.guests) {
       nextErrors.guests = `Esta casa aceita até ${selectedHouse.guests} hóspedes.`;
+    }
+    if (form.responsibleName.trim().split(/\s+/).length < 2) {
+      nextErrors.responsibleName = "Informe o nome completo do responsável.";
+    }
+    if (!isValidCPF(form.cpf)) {
+      nextErrors.cpf = "Informe um CPF válido.";
+    }
+    if (!form.birthDate || !isISODate(form.birthDate)) {
+      nextErrors.birthDate = "Informe a data de nascimento.";
+    } else if (compareISODate(form.birthDate, today) >= 0) {
+      nextErrors.birthDate = "A data de nascimento deve ser anterior a hoje.";
     }
 
     setErrors(nextErrors);
@@ -109,6 +186,9 @@ export function AvailabilityForm({
         checkOut: form.checkOut,
         adults: form.adults,
         children: form.children,
+        responsibleName: form.responsibleName,
+        cpf: form.cpf,
+        birthDate: form.birthDate,
         notes: form.notes,
       }),
       "_blank",
@@ -118,7 +198,6 @@ export function AvailabilityForm({
 
   const inputClass =
     "mt-1.5 min-h-11 w-full rounded-sm border border-[var(--color-line)] bg-[var(--color-shell)] px-3 text-sm text-[var(--color-ink)] outline-none transition focus:border-[var(--color-copper)] focus:ring-2 focus:ring-[var(--color-copper)]/20";
-  const isHorizontal = layout === "horizontal";
 
   return (
     <form
@@ -130,14 +209,8 @@ export function AvailabilityForm({
       }
       noValidate
     >
-      <div
-        className={
-          isHorizontal
-            ? "flex items-start gap-3 border-b border-[var(--color-line)] pb-4 lg:hidden"
-            : "flex items-start gap-3 border-b border-[var(--color-line)] pb-4"
-        }
-      >
-        <span className="grid size-10 shrink-0 place-items-center bg-[var(--color-ocean)] text-white">
+      <div className="flex items-start gap-3 border-b border-[var(--color-line)] pb-4">
+        <span className="grid size-10 shrink-0 place-items-center bg-[var(--color-ocean-strong)] text-white">
           <CalendarDays aria-hidden="true" size={19} />
         </span>
         <div>
@@ -145,170 +218,159 @@ export function AvailabilityForm({
             {title}
           </h2>
           <p className="mt-1.5 text-sm leading-6 text-[var(--color-muted)]">
-            Escolha a casa e envie uma mensagem completa para o atendimento.
+            Escolha datas disponíveis e envie uma solicitação completa pelo WhatsApp.
           </p>
         </div>
       </div>
 
-      <div
-        className={
-          isHorizontal
-            ? "mt-4 grid gap-3 sm:grid-cols-2 lg:mt-0 lg:grid-cols-[minmax(190px,1.35fr)_minmax(130px,0.85fr)_minmax(130px,0.85fr)_minmax(84px,0.48fr)_minmax(84px,0.48fr)] xl:grid-cols-[minmax(190px,1.08fr)_minmax(122px,0.7fr)_minmax(122px,0.7fr)_minmax(78px,0.42fr)_minmax(78px,0.42fr)_minmax(220px,1.16fr)_auto] xl:items-start"
-            : "mt-4 grid gap-3 sm:grid-cols-2"
-        }
-      >
-        <label
-          className={
-            isHorizontal
-              ? "text-sm font-semibold text-[var(--color-ink)] sm:col-span-2 lg:col-span-1"
-              : "text-sm font-semibold text-[var(--color-ink)] sm:col-span-2"
-          }
-        >
-          Casa
-          <select
-            className={inputClass}
-            value={form.houseSlug}
-            onChange={(event) => updateField("houseSlug", event.target.value)}
-            aria-invalid={Boolean(errors.houseSlug)}
-            aria-describedby={errors.houseSlug ? "house-error" : undefined}
-          >
-            {houses.map((house) => (
-              <option value={house.slug} key={house.id}>
-                {house.label} - {house.name}
-              </option>
-            ))}
-          </select>
-          {errors.houseSlug ? (
-            <span className="mt-2 block text-sm text-red-700" id="house-error">
-              {errors.houseSlug}
+      <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(330px,0.78fr)] xl:items-start">
+        <div className="grid gap-4">
+          <label className="text-sm font-semibold text-[var(--color-ink)]">
+            Casa
+            <span className="mt-1.5 flex min-h-11 items-center gap-2 border border-[var(--color-line)] bg-[var(--color-shell)] px-3">
+              <Home aria-hidden="true" className="shrink-0 text-[var(--color-copper)]" size={16} />
+              <select
+                className="h-10 w-full bg-transparent text-sm text-[var(--color-ink)] outline-none"
+                value={form.houseSlug}
+                onChange={(event) => updateHouseSlug(event.target.value)}
+                aria-invalid={Boolean(errors.houseSlug)}
+                aria-describedby={errors.houseSlug ? "house-error" : undefined}
+              >
+                {houses.map((house) => (
+                  <option value={house.slug} key={house.id}>
+                    {house.label} - {house.name}
+                  </option>
+                ))}
+              </select>
             </span>
-          ) : null}
-        </label>
-
-        <label className="text-sm font-semibold text-[var(--color-ink)]">
-          Entrada
-          <input
-            className={inputClass}
-            type="date"
-            min={todayIso()}
-            value={form.checkIn}
-            onChange={(event) => updateField("checkIn", event.target.value)}
-            aria-invalid={Boolean(errors.checkIn)}
-            aria-describedby={errors.checkIn ? "checkin-error" : undefined}
-          />
-          {errors.checkIn ? (
-            <span className="mt-2 block text-sm text-red-700" id="checkin-error">
-              {errors.checkIn}
-            </span>
-          ) : null}
-        </label>
-
-        <label className="text-sm font-semibold text-[var(--color-ink)]">
-          Saída
-          <input
-            className={inputClass}
-            type="date"
-            min={form.checkIn || todayIso()}
-            value={form.checkOut}
-            onChange={(event) => updateField("checkOut", event.target.value)}
-            aria-invalid={Boolean(errors.checkOut)}
-            aria-describedby={errors.checkOut ? "checkout-error" : undefined}
-          />
-          {errors.checkOut ? (
-            <span className="mt-2 block text-sm text-red-700" id="checkout-error">
-              {errors.checkOut}
-            </span>
-          ) : null}
-        </label>
-
-        <label className="text-sm font-semibold text-[var(--color-ink)]">
-          Adultos
-          <input
-            className={inputClass}
-            type="number"
-            min={1}
-            value={form.adults}
-            onChange={(event) => updateField("adults", Number(event.target.value))}
-            aria-invalid={Boolean(errors.adults)}
-            aria-describedby={errors.adults ? "adults-error" : undefined}
-          />
-          {errors.adults ? (
-            <span className="mt-2 block text-sm text-red-700" id="adults-error">
-              {errors.adults}
-            </span>
-          ) : null}
-        </label>
-
-        <label className="text-sm font-semibold text-[var(--color-ink)]">
-          Crianças
-          <input
-            className={inputClass}
-            type="number"
-            min={0}
-            value={form.children}
-            onChange={(event) => updateField("children", Number(event.target.value))}
-          />
-        </label>
-
-        {isHorizontal ? (
-          <>
-            <label className="text-sm font-semibold text-[var(--color-ink)] sm:col-span-2 lg:col-span-3 xl:col-span-1">
-              Observação opcional
-              <input
-                className={inputClass}
-                type="text"
-                value={form.notes}
-                onChange={(event) => updateField("notes", event.target.value)}
-                placeholder="Valores, condições ou pedido especial."
-              />
-            </label>
-
-            <button
-              type="submit"
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 self-end rounded-sm bg-[var(--color-ocean)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--color-copper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)] sm:col-span-2 lg:col-span-2 xl:col-span-1 xl:w-auto xl:min-w-56"
-            >
-              <MessageCircle aria-hidden="true" size={18} />
-              Enviar para o WhatsApp
-            </button>
-          </>
-        ) : null}
-      </div>
-
-      <div className={isHorizontal ? "mt-3 flex items-center gap-2 text-sm text-[var(--color-muted)] lg:hidden" : "mt-3 flex items-center gap-2 text-sm text-[var(--color-muted)]"}>
-        <Users aria-hidden="true" size={17} />
-        {selectedHouse ? (
-          <span>
-            {guests} hóspede{guests === 1 ? "" : "s"} de até {selectedHouse.guests}
-          </span>
-        ) : null}
-      </div>
-      {errors.guests ? (
-        <p className="mt-2 text-sm text-red-700" aria-live="polite">
-          {errors.guests}
-        </p>
-      ) : null}
-
-      {!isHorizontal ? (
-        <>
-          <label className="mt-3 block text-sm font-semibold text-[var(--color-ink)]">
-            Observação opcional
-            <textarea
-              className={`${inputClass} min-h-20 resize-y py-3`}
-              value={form.notes}
-              onChange={(event) => updateField("notes", event.target.value)}
-              placeholder="Gostaria de saber valores, condições e disponibilidade."
-            />
+            {errors.houseSlug ? (
+              <span className="mt-2 block text-sm text-red-700" id="house-error">
+                {errors.houseSlug}
+              </span>
+            ) : null}
           </label>
+
+          <DateRangeSelector
+            unavailableRanges={unavailableRanges}
+            checkIn={form.checkIn}
+            checkOut={form.checkOut}
+            onChange={(range) => {
+              updateField("checkIn", range.checkIn);
+              updateField("checkOut", range.checkOut);
+            }}
+            error={errors.calendar || errors.checkIn || errors.checkOut}
+          />
+
+          {selectedHouse ? <SelectedHouseSummary house={selectedHouse} /> : null}
+        </div>
+
+        <div className="grid gap-4">
+          <GuestSelector
+            adults={form.adults}
+            childGuests={form.children}
+            maxGuests={selectedHouse?.guests || 0}
+            errors={{
+              adults: errors.adults,
+              children: errors.children,
+              guests: errors.guests,
+            }}
+            inputClassName={inputClass}
+            onChange={updateGuests}
+          />
+
+          <ResponsibleGuestForm
+            responsibleName={form.responsibleName}
+            cpf={form.cpf}
+            birthDate={form.birthDate}
+            notes={form.notes}
+            errors={{
+              responsibleName: errors.responsibleName,
+              cpf: errors.cpf,
+              birthDate: errors.birthDate,
+            }}
+            inputClassName={inputClass}
+            onChange={updateResponsibleField}
+          />
 
           <button
             type="submit"
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm bg-[var(--color-ocean)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--color-copper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)]"
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm bg-[var(--color-ocean-strong)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--color-copper)] hover:text-[var(--color-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)]"
           >
             <MessageCircle aria-hidden="true" size={18} />
             Enviar para o WhatsApp
           </button>
-        </>
-      ) : null}
+        </div>
+      </div>
     </form>
+  );
+}
+
+function SelectedHouseSummary({ house }: { house: BookingHouseOption }) {
+  const facts = [
+    {
+      label: `Até ${house.guests} hóspedes`,
+      icon: Users,
+    },
+    {
+      label: `${house.bedrooms} quartos`,
+      icon: BedDouble,
+    },
+    {
+      label: `${house.bathrooms} banheiros`,
+      icon: Bath,
+    },
+    {
+      label: house.pool ? "Piscina privativa" : "Sem piscina",
+      icon: Waves,
+    },
+  ];
+
+  return (
+    <div className="border-l-2 border-[var(--color-copper)] bg-white/45 px-4 py-3">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[var(--color-copper)]">
+            Resumo da casa
+          </p>
+          <h3 className="mt-1 font-serif text-xl leading-tight text-[var(--color-ink)]">
+            {house.label} - {house.name}
+          </h3>
+        </div>
+        <span className="grid size-9 shrink-0 place-items-center bg-[var(--color-ocean-strong)] text-white">
+          <Home aria-hidden="true" size={17} />
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {facts.map(({ label, icon: Icon }) => (
+          <span
+            key={label}
+            className="inline-flex min-h-8 items-center gap-2 text-sm font-medium text-[var(--color-ink)]"
+          >
+            <Icon aria-hidden="true" className="shrink-0 text-[var(--color-copper)]" size={16} />
+            {label}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-3 flex items-start gap-2 border-t border-[var(--color-line)] pt-3 text-sm text-[var(--color-muted)]">
+        <MapPin aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--color-ocean-strong)]" size={16} />
+        <span>{house.locationLabel}</span>
+      </div>
+
+      {house.highlights.length ? (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {house.highlights.map((highlight) => (
+            <span
+              key={highlight}
+              className="inline-flex items-center gap-1.5 bg-[var(--color-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--color-ink)]"
+            >
+              <Sparkles aria-hidden="true" size={13} className="text-[var(--color-copper)]" />
+              {highlight}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }

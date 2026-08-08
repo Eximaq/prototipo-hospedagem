@@ -23,7 +23,7 @@ export function GoogleMap({ query, title }: GoogleMapProps) {
           href={buildGoogleMapsSearchUrl(query)}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 border border-[var(--color-ocean)] px-3 text-sm font-semibold text-[var(--color-ocean)] transition hover:bg-[var(--color-ocean)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)]"
+          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 border border-[var(--color-ocean)] px-3 text-sm font-semibold text-[var(--color-ocean)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)]"
         >
           <Navigation aria-hidden="true" size={15} />
           Abrir

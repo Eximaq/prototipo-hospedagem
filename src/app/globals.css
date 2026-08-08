@@ -8,13 +8,20 @@
   --color-soft: #ebe2d5;
   --color-ink: #172322;
   --color-muted: #65706b;
-  --color-forest: #2e5f4d;
-  --color-ocean: #0f3a44;
-  --color-teal: #3a777a;
-  --color-copper: #b46a42;
-  --color-gold: #c8a46d;
-  --color-rust: #a95e39;
-  --color-clay: #6f4635;
+  --color-brand-orange: #fe741c;
+  --color-brand-teal: #02969a;
+  --color-forest: #015a5d;
+  --color-ocean: #02969a;
+  --color-ocean-strong: #026d70;
+  --color-teal: #02969a;
+  --color-copper: #fe741c;
+  --color-gold: #fe741c;
+  --color-rust: #c94f0b;
+  --color-clay: #243033;
+  --color-logo-dark: #243033;
+  --color-logo-muted: #7a8582;
+  --color-logo-light: #fffaf1;
+  --color-logo-light-muted: #d8cbbb;
   --color-line: #d8cbbb;
 }
 
@@ -52,7 +59,7 @@ html {
 }
 
 ::selection {
-  background: #0f3a44;
+  background: #02969a;
   color: white;
 }
 

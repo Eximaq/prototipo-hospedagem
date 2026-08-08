@@ -16,8 +16,10 @@ export function Logo({
   className,
 }: LogoProps) {
   const isLight = variant === "light";
-  const color = isLight ? "text-white" : "text-[var(--color-ink)]";
-  const accent = isLight ? "text-[var(--color-gold)]" : "text-[var(--color-copper)]";
+  const color = isLight ? "text-[var(--color-logo-light)]" : "text-[var(--color-logo-dark)]";
+  const accent = isLight
+    ? "text-[var(--color-logo-light-muted)]"
+    : "text-[var(--color-logo-muted)]";
   const metrics = {
     sm: {
       gap: "gap-2.5",

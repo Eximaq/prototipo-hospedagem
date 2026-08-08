@@ -1,3 +1,4 @@
+import { getExternalCalendarsForHouse } from "@/data/external-calendars";
 import type { Experience, House, Testimonial } from "@/types/house";
 
 export const houses: House[] = [
@@ -10,8 +11,15 @@ export const houses: House[] = [
       "Uma casa de temporada com atmosfera clara, piscina e clima de descanso perto do mar.",
     fullDescription:
       "A Casa Turquesa foi pensada para famílias e grupos que querem planejar dias tranquilos em São Miguel dos Milagres. A casa combina áreas de convivência, piscina e ambientes claros para uma estadia confortável perto do mar.",
-    location: "São Miguel dos Milagres, AL",
-    mapQuery: "São Miguel dos Milagres Alagoas Brasil",
+    location: {
+      label: "São Miguel dos Milagres, AL",
+      mapQuery: "São Miguel dos Milagres Alagoas Brasil",
+      address: "Endereço exato informado no atendimento",
+    },
+    hero: {
+      type: "image",
+      image: "/images/casa-01/fachada.jpg",
+    },
     guests: 8,
     bedrooms: 4,
     beds: 5,
@@ -70,6 +78,7 @@ export const houses: House[] = [
     ],
     featured: true,
     instagram: "https://www.instagram.com/casa_turquesa05",
+    externalCalendars: getExternalCalendarsForHouse("casa-01"),
   },
   {
     id: "casa-02",
@@ -80,8 +89,15 @@ export const houses: House[] = [
       "Casa para temporada com presença de natureza, áreas de convivência e uma rotina leve em Milagres.",
     fullDescription:
       "A Casa Corais Milagres é uma opção para quem busca natureza, privacidade e espaço para reunir família ou amigos. O visitante pode comparar os principais dados, navegar pelas fotos e enviar uma consulta para confirmar disponibilidade, valores e condições.",
-    location: "São Miguel dos Milagres, AL",
-    mapQuery: "São Miguel dos Milagres Alagoas Brasil",
+    location: {
+      label: "São Miguel dos Milagres, AL",
+      mapQuery: "São Miguel dos Milagres Alagoas Brasil",
+      address: "Endereço exato informado no atendimento",
+    },
+    hero: {
+      type: "image",
+      image: "/images/casa-02/fachada.jpg",
+    },
     guests: 10,
     bedrooms: 4,
     beds: 6,
@@ -140,6 +156,7 @@ export const houses: House[] = [
     ],
     featured: true,
     instagram: "https://www.instagram.com/casacorais.milagres",
+    externalCalendars: getExternalCalendarsForHouse("casa-02"),
   },
 ];
 

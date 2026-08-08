@@ -5,6 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/prepare-static-export.mjs",
+    "test": "vitest run",
+    "sync:calendars": "tsx scripts/sync-calendars.ts",
+    "validate:static": "node scripts/validate-static-export.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -26,6 +30,8 @@
     "eslint-config-next": "16.3.0",
     "prettier": "^3.9.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.23.11",
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

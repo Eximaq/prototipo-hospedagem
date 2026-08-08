@@ -18,7 +18,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
+  ...(siteConfig.url ? { metadataBase: new URL(siteConfig.url) } : {}),
   title: {
     default: siteConfig.name,
     template: `%s | ${siteConfig.shortName}`,

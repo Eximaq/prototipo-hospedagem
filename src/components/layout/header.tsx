@@ -22,7 +22,7 @@ export function Header() {
   }, []);
 
   const visibleActiveSection =
-    pathname === "/" ? activeSection : pathname === "/contato" ? "contato" : "";
+    pathname === "/" ? activeSection : pathname.startsWith("/contato") ? "contato" : "";
 
   useEffect(() => {
     if (pathname !== "/") return;
@@ -65,7 +65,7 @@ export function Header() {
   }, [isOpen]);
 
   const transparentTop =
-    pathname === "/" || pathname === "/contato" || pathname.startsWith("/casas/");
+    pathname === "/" || pathname.startsWith("/contato") || pathname.startsWith("/casas/");
   const solid = scrolled || isOpen || !transparentTop;
   const hideHomeTopLogo = pathname === "/" && !solid;
 
@@ -121,11 +121,11 @@ export function Header() {
         </nav>
 
         <Link
-          href="/contato"
+          href="/contato/"
           className={cn(
             "hidden min-h-11 items-center justify-center rounded-sm px-4 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)] md:inline-flex md:justify-self-end",
             solid
-              ? "bg-[var(--color-ocean)] text-white hover:bg-[var(--color-copper)]"
+              ? "bg-[var(--color-ocean-strong)] text-white hover:bg-[var(--color-copper)] hover:text-[var(--color-ink)]"
               : "border border-white/55 bg-white/10 text-white backdrop-blur hover:bg-white hover:text-[var(--color-ink)]",
           )}
         >
@@ -150,7 +150,7 @@ export function Header() {
       <div
         id="mobile-menu"
         className={cn(
-          "fixed inset-x-0 top-20 z-50 h-[calc(100svh-5rem)] bg-[var(--color-ocean)] text-white transition duration-300 lg:hidden",
+          "fixed inset-x-0 top-20 z-50 h-[calc(100svh-5rem)] bg-[var(--color-ocean-strong)] text-white transition duration-300 lg:hidden",
           isOpen
             ? "translate-y-0 opacity-100"
             : "pointer-events-none -translate-y-4 opacity-0",
@@ -174,7 +174,7 @@ export function Header() {
             </nav>
           </div>
           <Link
-            href="/contato"
+            href="/contato/"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm bg-[var(--color-gold)] px-5 text-sm font-semibold text-[var(--color-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             onClick={() => setIsOpen(false)}
           >

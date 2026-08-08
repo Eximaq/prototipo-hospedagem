@@ -52,10 +52,10 @@ export function Footer() {
       </div>
       <div className="mx-auto flex max-w-7xl flex-col gap-3 border-t border-white/10 px-5 py-5 text-xs text-white/50 md:flex-row md:items-center md:justify-between md:px-8">
         <div className="flex flex-wrap gap-4">
-          <Link href="/contato" className="hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+          <Link href="/contato/" className="hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
             Termos
           </Link>
-          <Link href="/contato" className="hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+          <Link href="/contato/" className="hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
             Política de privacidade
           </Link>
         </div>

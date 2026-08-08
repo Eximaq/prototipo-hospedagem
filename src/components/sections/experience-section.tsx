@@ -8,7 +8,7 @@ export function ExperienceSection() {
   return (
     <section
       id="experiencia"
-      className="section-anchor bg-[var(--color-ocean)] px-4 py-10 text-white md:px-6 md:py-14 xl:px-8"
+      className="section-anchor bg-[var(--color-ocean-strong)] px-4 py-10 text-white md:px-6 md:py-14 xl:px-8"
     >
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-5 md:grid-cols-[0.75fr_1fr] md:items-end">

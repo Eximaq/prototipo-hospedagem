@@ -1,7 +1,9 @@
+const configuredPublicUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") || "";
+
 export const siteConfig = {
   name: "CASAS MILAGRES",
   shortName: "Casas Milagres",
-  url: "https://www.casasmilagres.com.br",
+  url: configuredPublicUrl,
   description:
     "Duas casas para temporada em São Miguel dos Milagres, com conforto, privacidade e consulta rápida pelo WhatsApp.",
   whatsappNumber: "5582993563898",
@@ -19,5 +21,5 @@ export const navItems = [
   { label: "Início", href: "/#inicio", id: "inicio" },
   { label: "Experiência", href: "/#experiencia", id: "experiencia" },
   { label: "Localização", href: "/#localizacao", id: "localizacao" },
-  { label: "Contato", href: "/contato", id: "contato" },
+  { label: "Contato", href: "/contato/", id: "contato" },
 ];

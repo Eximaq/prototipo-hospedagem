@@ -7,3 +7,18 @@ export function getHouseBySlug(slug: string) {
 export function getRelatedHouses(slug: string) {
   return houses.filter((house) => house.slug !== slug);
 }
+
+export function getBookingHouseOptions() {
+  return houses.map((house) => ({
+    id: house.id,
+    slug: house.slug,
+    label: house.label,
+    name: house.name,
+    locationLabel: house.location.label,
+    guests: house.guests,
+    bedrooms: house.bedrooms,
+    bathrooms: house.bathrooms,
+    pool: house.pool,
+    highlights: house.highlights.slice(0, 2),
+  }));
+}

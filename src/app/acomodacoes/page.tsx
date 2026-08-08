@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { StaticRedirect } from "@/components/navigation/static-redirect";
 
 export default function OldRoomsPage() {
-  redirect("/casas");
+  return <StaticRedirect href="/casas/" label="Ver casas" />;
 }

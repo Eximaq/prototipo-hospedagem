@@ -14,34 +14,44 @@ export function createMetadata({
   path = "/",
   image = siteConfig.ogImage,
 }: SeoInput): Metadata {
-  const url = new URL(path, siteConfig.url);
+  const canonicalUrl = siteConfig.url ? new URL(path, siteConfig.url) : undefined;
+  const imageUrl = siteConfig.url ? new URL(image, siteConfig.url).toString() : undefined;
+
   return {
     title,
     description,
-    alternates: {
-      canonical: url,
-    },
+    ...(canonicalUrl
+      ? {
+          alternates: {
+            canonical: canonicalUrl,
+          },
+        }
+      : {}),
     openGraph: {
       title,
       description,
-      url,
+      ...(canonicalUrl ? { url: canonicalUrl } : {}),
       siteName: siteConfig.name,
       locale: "pt_BR",
       type: "website",
-      images: [
-        {
-          url: image,
-          width: 1200,
-          height: 630,
-          alt: siteConfig.name,
-        },
-      ],
+      ...(imageUrl
+        ? {
+            images: [
+              {
+                url: imageUrl,
+                width: 1200,
+                height: 630,
+                alt: siteConfig.name,
+              },
+            ],
+          }
+        : {}),
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [image],
+      ...(imageUrl ? { images: [imageUrl] } : {}),
     },
   };
 }

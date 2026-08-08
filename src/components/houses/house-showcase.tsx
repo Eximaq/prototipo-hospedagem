@@ -64,14 +64,14 @@ export function HouseShowcase() {
                 </div>
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <Link
-                    href={`/casas/${house.slug}`}
-                    className="inline-flex min-h-11 items-center justify-center border border-[var(--color-ocean)] px-3 text-sm font-semibold text-[var(--color-ocean)] transition hover:bg-[var(--color-ocean)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
+                    href={`/casas/${house.slug}/`}
+                    className="inline-flex min-h-11 items-center justify-center border border-[var(--color-ocean)] px-3 text-sm font-semibold text-[var(--color-ocean)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
                   >
                     Ver detalhes
                   </Link>
                   <Link
-                    href={`/casas/${house.slug}#consultar`}
-                    className="inline-flex min-h-11 items-center justify-center bg-[var(--color-copper)] px-3 text-sm font-semibold text-white transition hover:bg-[var(--color-ocean)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
+                    href={`/casas/${house.slug}/#consultar`}
+                    className="inline-flex min-h-11 items-center justify-center bg-[var(--color-copper)] px-3 text-sm font-semibold text-[var(--color-ink)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
                   >
                     Escolher
                   </Link>

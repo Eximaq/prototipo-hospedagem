@@ -4,19 +4,24 @@ import { Logo } from "@/components/brand/logo";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { houses } from "@/data/houses";
 import { siteConfig } from "@/data/site-config";
+import { getPublicAvailability } from "@/lib/availability";
+import { getBookingHouseOptions } from "@/lib/data";
 import { createMetadata } from "@/lib/seo";
 
 export const metadata = createMetadata({
   title: "Contato",
   description:
     "Consulte disponibilidade da Casa Turquesa ou Casa Corais Milagres pelo WhatsApp.",
-  path: "/contato",
+  path: "/contato/",
 });
 
 export default function ContactPage() {
+  const bookingHouses = getBookingHouseOptions();
+  const availability = getPublicAvailability();
+
   return (
     <div className="bg-[var(--color-paper)]">
-      <section className="bg-[var(--color-ocean)] px-5 pb-16 pt-32 text-white md:px-8 md:pb-20 md:pt-40">
+      <section className="bg-[var(--color-ocean-strong)] px-5 pb-16 pt-32 text-white md:px-8 md:pb-20 md:pt-40">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.82fr_0.62fr] lg:items-end">
           <div>
             <Logo variant="light" showSignature size="lg" />
@@ -24,7 +29,7 @@ export default function ContactPage() {
               Consulte disponibilidade com uma mensagem completa.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72">
-              Escolha uma das casas, informe datas e hóspedes, e fale com o atendimento pelo WhatsApp.
+              Escolha uma das casas, confira datas disponíveis e fale com o atendimento pelo WhatsApp.
             </p>
           </div>
           <div className="border border-white/14 bg-white/[0.04] p-6 backdrop-blur">
@@ -51,14 +56,14 @@ export default function ContactPage() {
       </section>
 
       <section className="px-5 py-16 md:px-8 md:py-24">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.72fr_0.64fr] lg:items-start">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.46fr_0.9fr] lg:items-start">
           <div>
             <SectionHeading
               eyebrow="Atendimento"
               title="Duas casas, uma conversa objetiva."
               description="Os links dos perfis ficam visíveis para conferência visual. Valores, regras e endereço exato devem ser confirmados pelo atendimento."
             />
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               {houses.map((house) =>
                 house.instagram ? (
                   <a
@@ -75,7 +80,7 @@ export default function ContactPage() {
               )}
             </div>
           </div>
-          <AvailabilityForm />
+          <AvailabilityForm houses={bookingHouses} availability={availability} />
         </div>
       </section>
     </div>

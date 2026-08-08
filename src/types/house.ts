@@ -1,3 +1,5 @@
+import type { ExternalCalendar } from "@/lib/availability/types";
+
 export type HouseImage = {
   src: string;
   alt: string;
@@ -10,6 +12,26 @@ export type HouseFact = {
   value: string;
 };
 
+export type HouseLocation = {
+  label: string;
+  mapQuery: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  googleMapsUrl?: string;
+  wazeUrl?: string;
+};
+
+export type HouseHero = {
+  type: "image" | "video";
+  image: string;
+  video?: {
+    mp4?: string;
+    webm?: string;
+    poster: string;
+  };
+};
+
 export type House = {
   id: string;
   slug: string;
@@ -17,8 +39,8 @@ export type House = {
   name: string;
   shortDescription: string;
   fullDescription: string;
-  location: string;
-  mapQuery: string;
+  location: HouseLocation;
+  hero: HouseHero;
   guests: number;
   bedrooms: number;
   beds: number;
@@ -31,6 +53,7 @@ export type House = {
   images: HouseImage[];
   featured: boolean;
   instagram?: string;
+  externalCalendars: ExternalCalendar[];
 };
 
 export type Testimonial = {

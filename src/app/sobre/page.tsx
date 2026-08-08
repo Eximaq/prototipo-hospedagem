@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { StaticRedirect } from "@/components/navigation/static-redirect";
 
 export default function AboutPage() {
-  redirect("/");
+  return <StaticRedirect href="/" label="Ir para o início" />;
 }

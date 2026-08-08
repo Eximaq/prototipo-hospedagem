@@ -1,7 +1,12 @@
 import { AvailabilityForm } from "@/components/booking/availability-form";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { getPublicAvailability } from "@/lib/availability";
+import { getBookingHouseOptions } from "@/lib/data";
 
 export function AvailabilitySection() {
+  const houses = getBookingHouseOptions();
+  const availability = getPublicAvailability();
+
   return (
     <section
       id="consultar"
@@ -12,11 +17,11 @@ export function AvailabilitySection() {
           <SectionHeading
             eyebrow="Consulta"
             title="Escolha sua casa e comece a planejar seus dias em Milagres."
-            description="A mensagem chega ao WhatsApp com casa, datas, adultos, crianças e observações."
+            description="A mensagem chega ao WhatsApp com casa, datas, hóspedes, responsável e observações."
             compact
           />
         </div>
-        <AvailabilityForm layout="horizontal" />
+        <AvailabilityForm houses={houses} availability={availability} layout="horizontal" />
       </div>
     </section>
   );

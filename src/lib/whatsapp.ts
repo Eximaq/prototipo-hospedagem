@@ -1,5 +1,6 @@
 import { siteConfig } from "@/data/site-config";
-import { formatDateForMessage } from "@/lib/format";
+import { formatDateForDisplay } from "@/lib/availability/date-utils";
+import { formatCPF } from "@/lib/cpf";
 
 export type WhatsAppInquiry = {
   property?: string;
@@ -8,6 +9,9 @@ export type WhatsAppInquiry = {
   checkOut?: string;
   adults?: number;
   children?: number;
+  responsibleName?: string;
+  cpf?: string;
+  birthDate?: string;
   notes?: string;
 };
 
@@ -18,23 +22,40 @@ export function buildWhatsAppMessage({
   checkOut,
   adults,
   children,
+  responsibleName,
+  cpf,
+  birthDate,
   notes,
 }: WhatsAppInquiry) {
   const lines = [
     "Olá! Gostaria de consultar disponibilidade nas Casas Milagres.",
     "",
-    `Casa escolhida: ${property || room || "Não informada"}`,
-    `Entrada: ${formatDateForMessage(checkIn)}`,
-    `Saída: ${formatDateForMessage(checkOut)}`,
+    "HOSPEDAGEM",
+    "",
+    `Casa: ${property || room || "Não informada"}`,
+    `Entrada: ${formatDateForDisplay(checkIn)}`,
+    `Saída: ${formatDateForDisplay(checkOut)}`,
+    "",
+    "HÓSPEDES",
+    "",
     `Adultos: ${adults ?? "Não informado"}`,
     `Crianças: ${children ?? 0}`,
+    "",
+    "RESPONSÁVEL",
+    "",
+    `Nome: ${responsibleName?.trim() || "Não informado"}`,
+    `CPF: ${cpf ? formatCPF(cpf) : "Não informado"}`,
+    `Nascimento: ${formatDateForDisplay(birthDate)}`,
   ];
 
   if (notes?.trim()) {
-    lines.push("", "Observação:", notes.trim());
+    lines.push("", "OBSERVAÇÕES", "", notes.trim());
   }
 
-  lines.push("", "Aguardo retorno com disponibilidade, valores e condições.");
+  lines.push(
+    "",
+    "Gostaria de receber informações sobre disponibilidade, valores e condições.",
+  );
 
   return lines.join("\n");
 }

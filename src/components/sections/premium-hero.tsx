@@ -7,7 +7,7 @@ export function PremiumHero() {
   return (
     <section
       id="inicio"
-      className="section-anchor relative min-h-[78svh] overflow-hidden bg-[var(--color-ocean)] text-white"
+      className="section-anchor relative min-h-[78svh] overflow-hidden bg-[var(--color-ocean-strong)] text-white"
     >
       <Image
         src="/images/experiences/milagres-hero.jpg"
@@ -17,7 +17,7 @@ export function PremiumHero() {
         sizes="100vw"
         className="object-cover"
       />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,31,35,0.84),rgba(10,31,35,0.48)_48%,rgba(10,31,35,0.16))]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(1,72,75,0.84),rgba(2,109,112,0.48)_48%,rgba(2,150,154,0.16))]" />
       <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[var(--color-paper)] to-transparent" />
 
       <div className="relative z-10 mx-auto grid min-h-[78svh] max-w-7xl place-items-center px-4 py-24 text-center md:px-6 xl:px-8">
