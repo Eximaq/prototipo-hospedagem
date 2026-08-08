@@ -72,9 +72,13 @@ export function ResponsibleGuestForm({
         Data de nascimento
         <input
           className={inputClassName}
-          type="date"
+          type="text"
+          inputMode="numeric"
           value={birthDate}
           autoComplete="bday"
+          placeholder="dd/mm/aaaa"
+          maxLength={10}
+          pattern="\d{2}/\d{2}/\d{4}"
           onChange={(event) => onChange("birthDate", event.target.value)}
           aria-invalid={Boolean(errors.birthDate)}
           aria-describedby={errors.birthDate ? "birth-date-error" : undefined}

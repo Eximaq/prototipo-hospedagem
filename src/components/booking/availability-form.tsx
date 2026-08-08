@@ -18,11 +18,11 @@ import { ResponsibleGuestForm } from "@/components/booking/responsible-guest-for
 import {
   compareISODate,
   getTodayISO,
-  isISODate,
 } from "@/lib/availability/date-utils";
 import {
   isRangeAvailableFromRanges,
 } from "@/lib/availability/merge";
+import { birthDateInputToISO, formatBirthDateInput } from "@/lib/birth-date";
 import { formatCPF, isValidCPF } from "@/lib/cpf";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import type {
@@ -129,11 +129,19 @@ export function AvailabilityForm({
     field: "responsibleName" | "cpf" | "birthDate" | "notes",
     value: string,
   ) {
-    updateField(field, field === "cpf" ? formatCPF(value) : value);
+    const formattedValue =
+      field === "cpf"
+        ? formatCPF(value)
+        : field === "birthDate"
+          ? formatBirthDateInput(value)
+          : value;
+
+    updateField(field, formattedValue);
   }
 
   function validate() {
     const nextErrors: FormErrors = {};
+    const birthDateISO = birthDateInputToISO(form.birthDate);
 
     if (!form.houseSlug || !selectedHouse) nextErrors.houseSlug = "Selecione uma casa.";
     if (!form.checkIn) nextErrors.checkIn = "Selecione a data de entrada.";
@@ -165,9 +173,9 @@ export function AvailabilityForm({
     if (!isValidCPF(form.cpf)) {
       nextErrors.cpf = "Informe um CPF válido.";
     }
-    if (!form.birthDate || !isISODate(form.birthDate)) {
+    if (!birthDateISO) {
       nextErrors.birthDate = "Informe a data de nascimento.";
-    } else if (compareISODate(form.birthDate, today) >= 0) {
+    } else if (compareISODate(birthDateISO, today) >= 0) {
       nextErrors.birthDate = "A data de nascimento deve ser anterior a hoje.";
     }
 
@@ -178,6 +186,8 @@ export function AvailabilityForm({
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!validate() || !selectedHouse) return;
+    const birthDateISO = birthDateInputToISO(form.birthDate);
+    if (!birthDateISO) return;
 
     window.open(
       buildWhatsAppUrl({
@@ -188,7 +198,7 @@ export function AvailabilityForm({
         children: form.children,
         responsibleName: form.responsibleName,
         cpf: form.cpf,
-        birthDate: form.birthDate,
+        birthDate: birthDateISO,
         notes: form.notes,
       }),
       "_blank",

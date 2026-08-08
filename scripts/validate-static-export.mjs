@@ -386,7 +386,7 @@ async function runBrowserTests(baseUrl, report) {
       };
       setValue(name, "Joao da Silva");
       setValue(cpf, "52998224725");
-      setValue(birth, "1990-05-15");
+      setValue(birth, "15051990");
       setValue(notes, "Teste export estatico");
       setTimeout(() => {
         form.requestSubmit();
@@ -397,7 +397,8 @@ async function runBrowserTests(baseUrl, report) {
     const validWhatsApp =
       formResult.ok &&
       /^https:\/\/wa\.me\/5582993563898\?text=/.test(formResult.opened.url || "") &&
-      decodedWhatsApp.includes("CPF: 529.982.247-25");
+      decodedWhatsApp.includes("CPF: 529.982.247-25") &&
+      decodedWhatsApp.includes("Nascimento: 15/05/1990");
     if (validWhatsApp) report.pass("WhatsApp form", "opens encoded professional message");
     else report.fail("WhatsApp form", JSON.stringify(formResult));
 
