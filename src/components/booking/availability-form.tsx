@@ -2,15 +2,15 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import {
-  Bath,
-  BedDouble,
   CalendarDays,
+  Flame,
   Home,
   MapPin,
   MessageCircle,
   Sparkles,
   Users,
   Waves,
+  Wifi,
 } from "lucide-react";
 import { DateRangeSelector } from "@/components/availability/date-range-selector";
 import { GuestSelector } from "@/components/booking/guest-selector";
@@ -37,9 +37,11 @@ export type BookingHouseOption = {
   name: string;
   locationLabel: string;
   guests: number;
+  suites: number;
   bedrooms: number;
   bathrooms: number;
   pool: boolean;
+  barbecue: boolean;
   highlights: string[];
 };
 
@@ -97,7 +99,6 @@ export function AvailabilityForm({
     );
   }, [availability, selectedHouse]);
 
-  const guests = form.adults + form.children;
   const isHorizontal = layout === "horizontal";
   const today = getTodayISO();
 
@@ -164,9 +165,6 @@ export function AvailabilityForm({
     }
     if (form.adults < 1) nextErrors.adults = "Informe pelo menos 1 adulto.";
     if (form.children < 0) nextErrors.children = "Informe uma quantidade válida.";
-    if (selectedHouse && guests > selectedHouse.guests) {
-      nextErrors.guests = `Esta casa aceita até ${selectedHouse.guests} hóspedes.`;
-    }
     if (form.responsibleName.trim().split(/\s+/).length < 2) {
       nextErrors.responsibleName = "Informe o nome completo do responsável.";
     }
@@ -278,7 +276,7 @@ export function AvailabilityForm({
           <GuestSelector
             adults={form.adults}
             childGuests={form.children}
-            maxGuests={selectedHouse?.guests || 0}
+            maxGuests={null}
             errors={{
               adults: errors.adults,
               children: errors.children,
@@ -318,20 +316,24 @@ export function AvailabilityForm({
 function SelectedHouseSummary({ house }: { house: BookingHouseOption }) {
   const facts = [
     {
-      label: `Até ${house.guests} hóspedes`,
+      label: "Hóspedes sob consulta",
       icon: Users,
     },
     {
-      label: `${house.bedrooms} quartos`,
-      icon: BedDouble,
+      label: `${house.suites} suítes`,
+      icon: Home,
     },
     {
-      label: `${house.bathrooms} banheiros`,
-      icon: Bath,
+      label: "Wi-Fi disponível",
+      icon: Wifi,
     },
     {
       label: house.pool ? "Piscina privativa" : "Sem piscina",
       icon: Waves,
+    },
+    {
+      label: house.barbecue ? "Churrasqueira" : "Churrasqueira sob consulta",
+      icon: Flame,
     },
   ];
 

@@ -16,9 +16,11 @@ export function getBookingHouseOptions() {
     name: house.name,
     locationLabel: house.location.label,
     guests: house.guests,
+    suites: house.suites,
     bedrooms: house.bedrooms,
     bathrooms: house.bathrooms,
     pool: house.pool,
+    barbecue: house.barbecue,
     highlights: house.highlights.slice(0, 2),
   }));
 }

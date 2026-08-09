@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { ArrowRight, Check, MapPin } from "lucide-react";
 import { HouseGallery } from "@/components/gallery/house-gallery";
 import { HouseFacts } from "@/components/houses/house-facts";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -24,11 +24,11 @@ export function HouseShowcase() {
           </p>
         </div>
 
-        <div className="mt-7 grid gap-5 md:grid-cols-2 xl:gap-6">
+        <div className="mt-7 grid gap-5 lg:grid-cols-2 xl:gap-6">
           {houses.map((house) => (
             <article
               key={house.id}
-              className="overflow-hidden border border-[var(--color-line)] bg-[var(--color-shell)] shadow-[0_18px_45px_rgba(23,35,34,0.08)]"
+              className="flex h-full flex-col overflow-hidden border border-[var(--color-line)] bg-[var(--color-shell)] shadow-[0_18px_45px_rgba(23,35,34,0.08)]"
             >
               <div className="flex items-center justify-between border-b border-[var(--color-line)] px-4 py-3">
                 <div>
@@ -47,31 +47,33 @@ export function HouseShowcase() {
 
               <HouseGallery images={house.images} label={house.name} compact />
 
-              <div className="space-y-4 p-4 md:p-5">
+              <div className="flex flex-1 flex-col gap-4 p-4 md:p-5">
                 <p className="text-sm leading-6 text-[var(--color-muted)]">
                   {house.shortDescription}
                 </p>
                 <HouseFacts house={house} compact />
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {house.amenities.slice(0, 6).map((amenity) => (
                     <span
                       key={amenity}
-                      className="bg-[var(--color-soft)] px-2.5 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-[var(--color-muted)]"
+                      className="inline-flex min-h-8 items-center gap-1.5 border border-[var(--color-line)] bg-white/55 px-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.09em] text-[var(--color-muted)]"
                     >
+                      <Check aria-hidden="true" className="text-[var(--color-copper)]" size={13} />
                       {amenity}
                     </span>
                   ))}
                 </div>
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="mt-auto grid gap-2 pt-2 sm:grid-cols-2">
                   <Link
                     href={`/casas/${house.slug}/`}
-                    className="inline-flex min-h-11 items-center justify-center border border-[var(--color-ocean)] px-3 text-sm font-semibold text-[var(--color-ocean)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 border border-[var(--color-ocean)] px-3 text-sm font-semibold text-[var(--color-ocean)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
                   >
                     Ver detalhes
+                    <ArrowRight aria-hidden="true" size={16} />
                   </Link>
                   <Link
                     href={`/casas/${house.slug}/#consultar`}
-                    className="inline-flex min-h-11 items-center justify-center bg-[var(--color-copper)] px-3 text-sm font-semibold text-[var(--color-ink)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
+                    className="inline-flex min-h-11 items-center justify-center bg-[var(--color-copper)] px-3 text-sm font-semibold text-[var(--color-ink)] shadow-[0_10px_24px_rgba(254,116,28,0.18)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
                   >
                     Escolher
                   </Link>

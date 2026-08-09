@@ -37,7 +37,7 @@ export function Footer() {
             </li>
             <li className="flex gap-3">
               <MessageCircle aria-hidden="true" size={18} />
-              <span>WhatsApp centralizado em site-config</span>
+              <span>Atendimento direto pelo WhatsApp</span>
             </li>
             <li className="flex gap-3">
               <Mail aria-hidden="true" size={18} />

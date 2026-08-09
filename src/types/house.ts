@@ -42,10 +42,12 @@ export type House = {
   location: HouseLocation;
   hero: HouseHero;
   guests: number;
+  suites: number;
   bedrooms: number;
   beds: number;
   bathrooms: number;
   pool: boolean;
+  barbecue: boolean;
   amenities: string[];
   highlights: string[];
   rules: string[];
@@ -60,6 +62,7 @@ export type Testimonial = {
   name: string;
   context: string;
   quote: string;
+  stay: string;
 };
 
 export type Experience = {

@@ -5,7 +5,7 @@ import { Users } from "lucide-react";
 type GuestSelectorProps = {
   adults: number;
   childGuests: number;
-  maxGuests: number;
+  maxGuests?: number | null;
   errors: {
     adults?: string;
     children?: string;
@@ -66,7 +66,9 @@ export function GuestSelector({
       <div className="flex items-center gap-2 text-sm text-[var(--color-muted)] sm:col-span-2">
         <Users aria-hidden="true" size={17} />
         <span>
-          {totalGuests} hóspede{totalGuests === 1 ? "" : "s"} de até {maxGuests}
+          {maxGuests
+            ? `${totalGuests} hóspede${totalGuests === 1 ? "" : "s"} de até ${maxGuests}`
+            : `${totalGuests} hóspede${totalGuests === 1 ? "" : "s"} para consulta`}
         </span>
       </div>
       {errors.guests ? (

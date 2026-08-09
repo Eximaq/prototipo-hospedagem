@@ -123,32 +123,6 @@ export function HouseGallery({
           <GalleryArrow direction="next" onClick={next} label={`Próxima imagem de ${label}`} />
         </div>
 
-        <div className="hidden grid-cols-4 gap-1.5 md:grid">
-          {images.map((image, imageIndex) => (
-            <button
-              type="button"
-              key={image.src}
-              onClick={() => goTo(imageIndex)}
-              className={cn(
-                "relative aspect-square overflow-hidden border transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-gold)]",
-                imageIndex === index
-                  ? "border-[var(--color-copper)]"
-                  : "border-transparent opacity-72 hover:opacity-100",
-              )}
-              aria-label={`Ver imagem ${imageIndex + 1} de ${label}`}
-              aria-current={imageIndex === index}
-            >
-              <Image
-                src={image.src}
-                alt=""
-                fill
-                sizes="120px"
-                className="object-cover"
-              />
-            </button>
-          ))}
-        </div>
-
         <div className="flex items-center justify-center gap-1.5" aria-label="Indicadores da galeria">
           {images.map((image, imageIndex) => (
             <button
