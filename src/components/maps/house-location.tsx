@@ -44,7 +44,7 @@ export function HouseLocation({ location, title }: HouseLocationProps) {
             className="inline-flex min-h-10 items-center justify-center gap-2 border border-[var(--color-ocean)] px-3 text-sm font-semibold text-[var(--color-ocean)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)]"
           >
             <Navigation aria-hidden="true" size={15} />
-            Google
+            Google Maps
           </a>
           <a
             href={wazeUrl}

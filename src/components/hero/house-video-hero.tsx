@@ -12,7 +12,10 @@ export function HouseVideoHero({ house, children }: HouseVideoHeroProps) {
   const poster = video?.poster || house.hero.image || house.images[0].src;
 
   return (
-    <section className="relative min-h-[62svh] overflow-hidden bg-[var(--color-ocean-strong)] text-white">
+    <section
+      id="inicio"
+      className="section-anchor relative min-h-[62svh] overflow-hidden bg-[var(--color-ocean-strong)] text-white"
+    >
       {video ? (
         <>
           <video

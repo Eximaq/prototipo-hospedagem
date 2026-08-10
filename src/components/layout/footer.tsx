@@ -10,8 +10,8 @@ export function Footer() {
         <div>
           <Logo variant="light" showSignature size="md" />
           <p className="mt-5 max-w-md text-sm leading-7 text-white/68">
-            Duas casas para temporada em São Miguel dos Milagres, com conforto,
-            privacidade e atendimento direto para consulta de disponibilidade.
+            Casas para temporada em São Miguel dos Milagres, com piscina, suítes,
+            privacidade e atendimento direto para consultar disponibilidade.
           </p>
         </div>
         <nav aria-label="Rodapé" className="flex flex-col gap-3">
@@ -37,7 +37,12 @@ export function Footer() {
             </li>
             <li className="flex gap-3">
               <MessageCircle aria-hidden="true" size={18} />
-              <span>Atendimento direto pelo WhatsApp</span>
+              <Link
+                href="/#consultar"
+                className="hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Consultar disponibilidade
+              </Link>
             </li>
             <li className="flex gap-3">
               <Mail aria-hidden="true" size={18} />
@@ -45,7 +50,14 @@ export function Footer() {
             </li>
             <li className="flex gap-3">
               <AtSign aria-hidden="true" size={18} />
-              <span>Casa Turquesa / Casa Corais Milagres</span>
+              <a
+                href={siteConfig.instagram}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Instagram
+              </a>
             </li>
           </ul>
         </address>
@@ -59,7 +71,7 @@ export function Footer() {
             Política de privacidade
           </Link>
         </div>
-        <span>Hospedagem, conforto e experiências</span>
+        <span>São Miguel dos Milagres, AL</span>
       </div>
       <div className="border-t border-white/10 px-5 py-5 text-center text-xs text-white/52">
         © 2026 {siteConfig.name}. Hospedagem de temporada em São Miguel dos Milagres.

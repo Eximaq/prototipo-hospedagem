@@ -18,8 +18,23 @@ describe("WhatsApp inquiry", () => {
     expect(message).toContain("HOSPEDAGEM");
     expect(message).toContain("Casa: Casa Turquesa");
     expect(message).toContain("Entrada: 20/09/2026");
+    expect(message).toContain("Estadia: 4 noites");
     expect(message).toContain("RESPONSÁVEL");
     expect(message).toContain("CPF: 529.982.247-25");
+  });
+
+  it("omits empty optional fields", () => {
+    const message = buildWhatsAppMessage({
+      property: "Casa Corais Milagres",
+      checkIn: "2026-10-20",
+      checkOut: "2026-10-24",
+      adults: 2,
+    });
+
+    expect(message).toContain("Estadia: 4 noites");
+    expect(message).not.toContain("CPF:");
+    expect(message).not.toContain("Nascimento:");
+    expect(message).not.toContain("Não informado");
   });
 
   it("encodes the message in the WhatsApp URL", () => {

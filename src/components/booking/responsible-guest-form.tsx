@@ -13,6 +13,8 @@ type ResponsibleGuestFormProps = {
     birthDate?: string;
   };
   inputClassName: string;
+  showPreReservationFields: boolean;
+  onTogglePreReservation: () => void;
   onChange: (
     field: "responsibleName" | "cpf" | "birthDate" | "notes",
     value: string,
@@ -26,12 +28,14 @@ export function ResponsibleGuestForm({
   notes,
   errors,
   inputClassName,
+  showPreReservationFields,
+  onTogglePreReservation,
   onChange,
 }: ResponsibleGuestFormProps) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      <label className="text-sm font-semibold text-[var(--color-ink)] sm:col-span-2 lg:col-span-1">
-        Nome completo do responsável
+      <label className="text-sm font-semibold text-[var(--color-ink)] sm:col-span-2">
+        Nome do responsável
         <input
           className={inputClassName}
           type="text"
@@ -48,48 +52,6 @@ export function ResponsibleGuestForm({
         ) : null}
       </label>
 
-      <label className="text-sm font-semibold text-[var(--color-ink)]">
-        CPF
-        <input
-          className={inputClassName}
-          type="text"
-          inputMode="numeric"
-          value={cpf}
-          autoComplete="off"
-          placeholder="000.000.000-00"
-          onChange={(event) => onChange("cpf", event.target.value)}
-          aria-invalid={Boolean(errors.cpf)}
-          aria-describedby={errors.cpf ? "cpf-error" : undefined}
-        />
-        {errors.cpf ? (
-          <span className="mt-2 block text-sm text-red-700" id="cpf-error">
-            {errors.cpf}
-          </span>
-        ) : null}
-      </label>
-
-      <label className="text-sm font-semibold text-[var(--color-ink)]">
-        Data de nascimento
-        <input
-          className={inputClassName}
-          type="text"
-          inputMode="numeric"
-          value={birthDate}
-          autoComplete="bday"
-          placeholder="dd/mm/aaaa"
-          maxLength={10}
-          pattern="\d{2}/\d{2}/\d{4}"
-          onChange={(event) => onChange("birthDate", event.target.value)}
-          aria-invalid={Boolean(errors.birthDate)}
-          aria-describedby={errors.birthDate ? "birth-date-error" : undefined}
-        />
-        {errors.birthDate ? (
-          <span className="mt-2 block text-sm text-red-700" id="birth-date-error">
-            {errors.birthDate}
-          </span>
-        ) : null}
-      </label>
-
       <label className="text-sm font-semibold text-[var(--color-ink)] sm:col-span-2">
         Observações
         <textarea
@@ -99,6 +61,63 @@ export function ResponsibleGuestForm({
           placeholder="Gostaria de saber valores, condições e disponibilidade."
         />
       </label>
+
+      <button
+        type="button"
+        onClick={onTogglePreReservation}
+        className="inline-flex min-h-10 items-center justify-center border border-[var(--color-line)] px-3 text-sm font-semibold text-[var(--color-ocean)] transition hover:border-[var(--color-ocean)] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)] sm:col-span-2"
+        aria-expanded={showPreReservationFields}
+      >
+        {showPreReservationFields
+          ? "Ocultar dados de pré-reserva"
+          : "Continuar para dados de pré-reserva"}
+      </button>
+
+      {showPreReservationFields ? (
+        <>
+          <label className="text-sm font-semibold text-[var(--color-ink)]">
+            CPF
+            <input
+              className={inputClassName}
+              type="text"
+              inputMode="numeric"
+              value={cpf}
+              autoComplete="off"
+              placeholder="000.000.000-00"
+              onChange={(event) => onChange("cpf", event.target.value)}
+              aria-invalid={Boolean(errors.cpf)}
+              aria-describedby={errors.cpf ? "cpf-error" : undefined}
+            />
+            {errors.cpf ? (
+              <span className="mt-2 block text-sm text-red-700" id="cpf-error">
+                {errors.cpf}
+              </span>
+            ) : null}
+          </label>
+
+          <label className="text-sm font-semibold text-[var(--color-ink)]">
+            Data de nascimento
+            <input
+              className={inputClassName}
+              type="text"
+              inputMode="numeric"
+              value={birthDate}
+              autoComplete="bday"
+              placeholder="dd/mm/aaaa"
+              maxLength={10}
+              pattern="\d{2}/\d{2}/\d{4}"
+              onChange={(event) => onChange("birthDate", event.target.value)}
+              aria-invalid={Boolean(errors.birthDate)}
+              aria-describedby={errors.birthDate ? "birth-date-error" : undefined}
+            />
+            {errors.birthDate ? (
+              <span className="mt-2 block text-sm text-red-700" id="birth-date-error">
+                {errors.birthDate}
+              </span>
+            ) : null}
+          </label>
+        </>
+      ) : null}
 
       <p className="flex gap-2 text-xs leading-5 text-[var(--color-muted)] sm:col-span-2">
         <ShieldCheck aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--color-ocean)]" size={15} />

@@ -90,6 +90,11 @@ export function isValidDateRange(startDate: string, endDate: string) {
   return isISODate(startDate) && isISODate(endDate) && isBefore(startDate, endDate);
 }
 
+export function calculateNights(checkIn?: string, checkOut?: string) {
+  if (!checkIn || !checkOut || !isValidDateRange(checkIn, checkOut)) return 0;
+  return toDayNumber(checkOut) - toDayNumber(checkIn);
+}
+
 export function getTodayISO(timeZone = PROPERTY_TIME_ZONE) {
   const parts = new Intl.DateTimeFormat("en", {
     timeZone,

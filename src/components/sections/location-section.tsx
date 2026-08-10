@@ -12,12 +12,12 @@ export function LocationSection() {
         <div>
           <SectionHeading
             eyebrow="Localização"
-            title="Milagres como ponto de partida."
-            description="Use esta seção para inserir endereço, mapa e distâncias reais quando as informações oficiais forem fornecidas."
+            title="Onde você vai estar."
+            description="São Miguel dos Milagres é uma base tranquila para aproveitar praias, passeios e restaurantes do litoral norte de Alagoas."
             compact
           />
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            {["Praias da região", "Restaurantes locais", "Passeios sob consulta"].map((item) => (
+            {["Praias da região", "Restaurantes locais", "Passeios em Milagres"].map((item) => (
               <div key={item} className="border-t border-[var(--color-line)] pt-4 text-sm font-semibold text-[var(--color-muted)]">
                 {item}
               </div>

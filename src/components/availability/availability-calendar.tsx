@@ -281,6 +281,7 @@ function DayButton({
       className={cn(
         "aspect-square min-h-8 border text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-gold)] sm:min-h-9 sm:text-sm",
         disabled && "cursor-not-allowed border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] opacity-55",
+        unavailable && "line-through decoration-[var(--color-copper)] decoration-2",
         !disabled && "border-[var(--color-line)] bg-white text-[var(--color-ink)] hover:border-[var(--color-copper)] hover:bg-[var(--color-soft)]",
         inRange && !disabled && "border-[var(--color-ocean)] bg-[var(--color-ocean)]/10",
         (selectedStart || selectedEnd) &&

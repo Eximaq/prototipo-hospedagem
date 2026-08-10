@@ -18,6 +18,7 @@ export type HouseLocation = {
   latitude?: number;
   longitude?: number;
   address?: string;
+  distances?: HouseFact[];
   googleMapsUrl?: string;
   wazeUrl?: string;
 };
@@ -39,19 +40,24 @@ export type House = {
   name: string;
   shortDescription: string;
   fullDescription: string;
+  idealFor: string;
+  capacityNote: string;
   location: HouseLocation;
   hero: HouseHero;
-  guests: number;
+  guests: number | null;
   suites: number;
   bedrooms: number;
   beds: number;
   bathrooms: number;
+  priceFrom?: number;
   pool: boolean;
   barbecue: boolean;
   amenities: string[];
   highlights: string[];
   rules: string[];
   usefulInfo: string[];
+  policies: HouseFact[];
+  faqs: HouseFaq[];
   images: HouseImage[];
   featured: boolean;
   instagram?: string;
@@ -63,9 +69,19 @@ export type Testimonial = {
   context: string;
   quote: string;
   stay: string;
+  rating?: number;
+  source?: "Google" | "Airbnb" | "Booking" | "Cliente";
+  photo?: string;
+  placeholder?: boolean;
 };
 
 export type Experience = {
   title: string;
   description: string;
+  image: string;
+};
+
+export type HouseFaq = {
+  question: string;
+  answer: string;
 };

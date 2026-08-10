@@ -68,6 +68,9 @@ export function Header() {
     pathname === "/" || pathname.startsWith("/contato") || pathname.startsWith("/casas/");
   const solid = scrolled || isOpen || !transparentTop;
   const hideHomeTopLogo = pathname === "/" && !solid;
+  const consultHref = pathname.startsWith("/casas/")
+    ? `${pathname}#consultar`
+    : "/#consultar";
 
   return (
     <header
@@ -121,7 +124,7 @@ export function Header() {
         </nav>
 
         <Link
-          href="/contato/"
+          href={consultHref}
           className={cn(
             "hidden min-h-11 items-center justify-center rounded-sm px-4 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)] md:inline-flex md:justify-self-end",
             solid
@@ -174,7 +177,7 @@ export function Header() {
             </nav>
           </div>
           <Link
-            href="/contato/"
+            href={consultHref}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm bg-[var(--color-gold)] px-5 text-sm font-semibold text-[var(--color-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             onClick={() => setIsOpen(false)}
           >

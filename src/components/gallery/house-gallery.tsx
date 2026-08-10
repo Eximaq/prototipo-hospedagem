@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { HouseImage } from "@/types/house";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/format";
 
 type HouseGalleryProps = {
@@ -85,7 +86,10 @@ export function HouseGallery({
         >
           <button
             type="button"
-            onClick={() => setLightboxOpen(true)}
+            onClick={() => {
+              trackEvent("open_gallery", { label, imageIndex: index + 1 });
+              setLightboxOpen(true);
+            }}
             className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[var(--color-gold)]"
             aria-label={`Abrir galeria de ${label}`}
           >
@@ -116,8 +120,9 @@ export function HouseGallery({
           <div className="absolute right-3 top-3 z-20 rounded-full bg-black/45 px-3 py-1 text-[0.68rem] font-semibold text-white backdrop-blur">
             {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
           </div>
-          <div className="absolute bottom-3 right-3 z-20 grid size-9 place-items-center rounded-full bg-white/90 text-[var(--color-ink)]">
+          <div className="absolute bottom-3 right-3 z-20 inline-flex min-h-9 items-center gap-2 rounded-full bg-white/90 px-3 text-xs font-semibold text-[var(--color-ink)]">
             <Maximize2 aria-hidden="true" size={17} />
+            <span className="hidden sm:inline">Ver todas as fotos</span>
           </div>
           <GalleryArrow direction="previous" onClick={previous} label={`Imagem anterior de ${label}`} />
           <GalleryArrow direction="next" onClick={next} label={`Próxima imagem de ${label}`} />

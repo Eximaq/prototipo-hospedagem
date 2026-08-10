@@ -5,11 +5,14 @@ const factIcons = [Users, DoorOpen, Wifi, Waves, Flame];
 
 export function HouseFacts({ house, compact = false }: { house: House; compact?: boolean }) {
   const facts = [
-    { label: "Hóspedes", value: "sob consulta" },
+    {
+      label: "Hóspedes",
+      value: house.guests ? `até ${house.guests}` : "a confirmar",
+    },
     { label: "Suítes", value: String(house.suites) },
-    { label: "Wi-Fi", value: "sim" },
-    { label: "Piscina", value: house.pool ? "sim" : "sob consulta" },
-    { label: "Churrasqueira", value: house.barbecue ? "sim" : "sob consulta" },
+    { label: "Wi-Fi", value: "Sim" },
+    { label: "Piscina", value: house.pool ? "Sim" : "a confirmar" },
+    { label: "Churrasqueira", value: house.barbecue ? "Sim" : "a confirmar" },
   ];
 
   return (

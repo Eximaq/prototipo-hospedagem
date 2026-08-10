@@ -1,12 +1,15 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
+  AlertCircle,
   CalendarDays,
+  CheckCircle2,
   Flame,
   Home,
   MapPin,
   MessageCircle,
+  ShieldCheck,
   Sparkles,
   Users,
   Waves,
@@ -16,9 +19,13 @@ import { DateRangeSelector } from "@/components/availability/date-range-selector
 import { GuestSelector } from "@/components/booking/guest-selector";
 import { ResponsibleGuestForm } from "@/components/booking/responsible-guest-form";
 import {
+  calculateNights,
   compareISODate,
+  formatDateForDisplay,
   getTodayISO,
+  isISODate,
 } from "@/lib/availability/date-utils";
+import { trackEvent } from "@/lib/analytics";
 import {
   isRangeAvailableFromRanges,
 } from "@/lib/availability/merge";
@@ -36,7 +43,7 @@ export type BookingHouseOption = {
   label: string;
   name: string;
   locationLabel: string;
-  guests: number;
+  guests: number | null;
   suites: number;
   bedrooms: number;
   bathrooms: number;
@@ -56,6 +63,8 @@ type FormState = {
   birthDate: string;
   notes: string;
 };
+
+type PrefillDetail = Partial<Pick<FormState, "houseSlug" | "checkIn" | "checkOut" | "adults" | "children">>;
 
 type FormErrors = Partial<Record<keyof FormState | "guests" | "calendar", string>>;
 
@@ -85,6 +94,50 @@ export function AvailabilityForm({
     notes: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [showPreReservationFields, setShowPreReservationFields] = useState(false);
+
+  useEffect(() => {
+    function applyPrefill(detail: PrefillDetail) {
+      const validHouseSlug =
+        detail.houseSlug && houses.some((house) => house.slug === detail.houseSlug)
+          ? detail.houseSlug
+          : undefined;
+      setForm((current) => ({
+        ...current,
+        houseSlug: validHouseSlug || current.houseSlug,
+        checkIn: detail.checkIn || current.checkIn,
+        checkOut: detail.checkOut || current.checkOut,
+        adults:
+          typeof detail.adults === "number" && Number.isFinite(detail.adults)
+            ? detail.adults
+            : current.adults,
+        children:
+          typeof detail.children === "number" && Number.isFinite(detail.children)
+            ? detail.children
+            : current.children,
+      }));
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const prefillFromUrl: PrefillDetail = {
+      houseSlug: params.get("casa") || params.get("house") || undefined,
+      checkIn: params.get("checkIn") || undefined,
+      checkOut: params.get("checkOut") || undefined,
+      adults: params.get("adults") ? Number(params.get("adults")) : undefined,
+      children: params.get("children") ? Number(params.get("children")) : undefined,
+    };
+
+    if (Object.values(prefillFromUrl).some((value) => value !== undefined)) {
+      applyPrefill(prefillFromUrl);
+    }
+
+    function onPrefill(event: Event) {
+      applyPrefill((event as CustomEvent<PrefillDetail>).detail || {});
+    }
+
+    window.addEventListener("booking-prefill", onPrefill);
+    return () => window.removeEventListener("booking-prefill", onPrefill);
+  }, [houses]);
 
   const selectedHouse = useMemo(
     () => houses.find((house) => house.slug === form.houseSlug),
@@ -101,6 +154,27 @@ export function AvailabilityForm({
 
   const isHorizontal = layout === "horizontal";
   const today = getTodayISO();
+  const nights = calculateNights(form.checkIn, form.checkOut);
+  const hasValidRange = Boolean(
+    form.checkIn &&
+      form.checkOut &&
+      isISODate(form.checkIn) &&
+      isISODate(form.checkOut) &&
+      compareISODate(form.checkOut, form.checkIn) > 0,
+  );
+  const hasAvailabilityConflict = Boolean(
+    hasValidRange &&
+      !isRangeAvailableFromRanges(form.checkIn, form.checkOut, unavailableRanges),
+  );
+  const canContinueToContact = Boolean(selectedHouse && hasValidRange && !hasAvailabilityConflict);
+
+  useEffect(() => {
+    if (!hasValidRange || !selectedHouse) return;
+    trackEvent(hasAvailabilityConflict ? "availability_conflict" : "availability_success", {
+      houseSlug: selectedHouse.slug,
+      nights,
+    });
+  }, [hasAvailabilityConflict, hasValidRange, nights, selectedHouse]);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -113,6 +187,7 @@ export function AvailabilityForm({
   }
 
   function updateHouseSlug(value: string) {
+    trackEvent("select_house", { houseSlug: value });
     setForm((current) => ({
       ...current,
       houseSlug: value,
@@ -147,18 +222,32 @@ export function AvailabilityForm({
     if (!form.houseSlug || !selectedHouse) nextErrors.houseSlug = "Selecione uma casa.";
     if (!form.checkIn) nextErrors.checkIn = "Selecione a data de entrada.";
     if (!form.checkOut) nextErrors.checkOut = "Selecione a data de saída.";
-    if (form.checkIn && compareISODate(form.checkIn, today) < 0) {
+    if (form.checkIn && !isISODate(form.checkIn)) {
+      nextErrors.checkIn = "Selecione uma data de entrada válida.";
+    }
+    if (form.checkOut && !isISODate(form.checkOut)) {
+      nextErrors.checkOut = "Selecione uma data de saída válida.";
+    }
+    if (form.checkIn && isISODate(form.checkIn) && compareISODate(form.checkIn, today) < 0) {
       nextErrors.checkIn = "A entrada não pode ser uma data passada.";
     }
-    if (form.checkOut && compareISODate(form.checkOut, today) < 0) {
+    if (form.checkOut && isISODate(form.checkOut) && compareISODate(form.checkOut, today) < 0) {
       nextErrors.checkOut = "A saída não pode ser uma data passada.";
     }
-    if (form.checkIn && form.checkOut && compareISODate(form.checkOut, form.checkIn) <= 0) {
+    if (
+      form.checkIn &&
+      form.checkOut &&
+      isISODate(form.checkIn) &&
+      isISODate(form.checkOut) &&
+      compareISODate(form.checkOut, form.checkIn) <= 0
+    ) {
       nextErrors.checkOut = "A saída deve ser posterior à entrada.";
     }
     if (
       form.checkIn &&
       form.checkOut &&
+      isISODate(form.checkIn) &&
+      isISODate(form.checkOut) &&
       !isRangeAvailableFromRanges(form.checkIn, form.checkOut, unavailableRanges)
     ) {
       nextErrors.calendar = "Esse intervalo atravessa uma data indisponível.";
@@ -166,15 +255,19 @@ export function AvailabilityForm({
     if (form.adults < 1) nextErrors.adults = "Informe pelo menos 1 adulto.";
     if (form.children < 0) nextErrors.children = "Informe uma quantidade válida.";
     if (form.responsibleName.trim().split(/\s+/).length < 2) {
-      nextErrors.responsibleName = "Informe o nome completo do responsável.";
+      nextErrors.responsibleName = "Informe seu nome completo.";
     }
-    if (!isValidCPF(form.cpf)) {
-      nextErrors.cpf = "Informe um CPF válido.";
+    if (showPreReservationFields || form.cpf.trim()) {
+      if (!isValidCPF(form.cpf)) {
+        nextErrors.cpf = "Informe um CPF válido.";
+      }
     }
-    if (!birthDateISO) {
-      nextErrors.birthDate = "Informe a data de nascimento.";
-    } else if (compareISODate(birthDateISO, today) >= 0) {
-      nextErrors.birthDate = "A data de nascimento deve ser anterior a hoje.";
+    if (showPreReservationFields || form.birthDate.trim()) {
+      if (!birthDateISO) {
+        nextErrors.birthDate = "Informe a data no formato dd/mm/aaaa.";
+      } else if (compareISODate(birthDateISO, today) >= 0) {
+        nextErrors.birthDate = "A data de nascimento deve ser anterior a hoje.";
+      }
     }
 
     setErrors(nextErrors);
@@ -185,8 +278,13 @@ export function AvailabilityForm({
     event.preventDefault();
     if (!validate() || !selectedHouse) return;
     const birthDateISO = birthDateInputToISO(form.birthDate);
-    if (!birthDateISO) return;
 
+    trackEvent("click_whatsapp", {
+      houseSlug: selectedHouse.slug,
+      nights,
+      adults: form.adults,
+      children: form.children,
+    });
     window.open(
       buildWhatsAppUrl({
         property: selectedHouse.name,
@@ -195,8 +293,8 @@ export function AvailabilityForm({
         adults: form.adults,
         children: form.children,
         responsibleName: form.responsibleName,
-        cpf: form.cpf,
-        birthDate: birthDateISO,
+        cpf: form.cpf || undefined,
+        birthDate: birthDateISO || undefined,
         notes: form.notes,
       }),
       "_blank",
@@ -226,7 +324,7 @@ export function AvailabilityForm({
             {title}
           </h2>
           <p className="mt-1.5 text-sm leading-6 text-[var(--color-muted)]">
-            Escolha datas disponíveis e envie uma solicitação completa pelo WhatsApp.
+            Escolha casa, datas e hóspedes. Depois envie a consulta pelo WhatsApp.
           </p>
         </div>
       </div>
@@ -263,10 +361,27 @@ export function AvailabilityForm({
             checkIn={form.checkIn}
             checkOut={form.checkOut}
             onChange={(range) => {
+              if (range.checkIn && !form.checkIn) {
+                trackEvent("select_checkin", { houseSlug: form.houseSlug });
+              }
+              if (range.checkOut && !form.checkOut) {
+                trackEvent("select_checkout", { houseSlug: form.houseSlug });
+              }
               updateField("checkIn", range.checkIn);
               updateField("checkOut", range.checkOut);
             }}
             error={errors.calendar || errors.checkIn || errors.checkOut}
+          />
+
+          <BookingSelectionSummary
+            houseName={selectedHouse?.name}
+            checkIn={form.checkIn}
+            checkOut={form.checkOut}
+            nights={nights}
+            adults={form.adults}
+            childGuests={form.children}
+            hasValidRange={hasValidRange}
+            hasAvailabilityConflict={hasAvailabilityConflict}
           />
 
           {selectedHouse ? <SelectedHouseSummary house={selectedHouse} /> : null}
@@ -286,26 +401,43 @@ export function AvailabilityForm({
             onChange={updateGuests}
           />
 
-          <ResponsibleGuestForm
-            responsibleName={form.responsibleName}
-            cpf={form.cpf}
-            birthDate={form.birthDate}
-            notes={form.notes}
-            errors={{
-              responsibleName: errors.responsibleName,
-              cpf: errors.cpf,
-              birthDate: errors.birthDate,
-            }}
-            inputClassName={inputClass}
-            onChange={updateResponsibleField}
-          />
+          {canContinueToContact ? (
+            <ResponsibleGuestForm
+              responsibleName={form.responsibleName}
+              cpf={form.cpf}
+              birthDate={form.birthDate}
+              notes={form.notes}
+              errors={{
+                responsibleName: errors.responsibleName,
+                cpf: errors.cpf,
+                birthDate: errors.birthDate,
+              }}
+              inputClassName={inputClass}
+              showPreReservationFields={showPreReservationFields}
+              onTogglePreReservation={() =>
+                setShowPreReservationFields((current) => !current)
+              }
+              onChange={updateResponsibleField}
+            />
+          ) : (
+            <div className="border border-[var(--color-line)] bg-white/55 p-4">
+              <p className="flex gap-2 text-sm font-semibold text-[var(--color-ink)]">
+                <ShieldCheck aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--color-ocean)]" size={17} />
+                Selecione um período válido para continuar.
+              </p>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+                Primeiro confirme casa, entrada, saída e hóspedes. Depois pedimos apenas os dados necessários para iniciar a conversa no WhatsApp.
+              </p>
+            </div>
+          )}
 
           <button
             type="submit"
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm bg-[var(--color-ocean-strong)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--color-copper)] hover:text-[var(--color-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)]"
+            disabled={!canContinueToContact}
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm bg-[var(--color-ocean-strong)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--color-copper)] hover:text-[var(--color-ink)] disabled:cursor-not-allowed disabled:bg-[var(--color-muted)]/45 disabled:text-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)]"
           >
             <MessageCircle aria-hidden="true" size={18} />
-            Enviar para o WhatsApp
+            Consultar disponibilidade
           </button>
         </div>
       </div>
@@ -313,10 +445,86 @@ export function AvailabilityForm({
   );
 }
 
+function BookingSelectionSummary({
+  houseName,
+  checkIn,
+  checkOut,
+  nights,
+  adults,
+  childGuests,
+  hasValidRange,
+  hasAvailabilityConflict,
+}: {
+  houseName?: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  adults: number;
+  childGuests: number;
+  hasValidRange: boolean;
+  hasAvailabilityConflict: boolean;
+}) {
+  const totalGuests = adults + childGuests;
+
+  return (
+    <div className="border border-[var(--color-line)] bg-white/50 p-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <SummaryItem label="Casa" value={houseName || "Escolha uma casa"} />
+        <SummaryItem
+          label="Período"
+          value={
+            checkIn && checkOut
+              ? `${formatDateForDisplay(checkIn)} a ${formatDateForDisplay(checkOut)}`
+              : "Escolha entrada e saída"
+          }
+        />
+        <SummaryItem
+          label="Estadia"
+          value={nights ? `${nights} noite${nights === 1 ? "" : "s"}` : "Aguardando datas"}
+        />
+        <SummaryItem
+          label="Hóspedes"
+          value={`${totalGuests} hóspede${totalGuests === 1 ? "" : "s"}`}
+        />
+      </div>
+      {hasValidRange ? (
+        <p
+          className={`mt-4 flex gap-2 text-sm font-semibold ${
+            hasAvailabilityConflict ? "text-red-700" : "text-[var(--color-ocean-strong)]"
+          }`}
+          aria-live="polite"
+        >
+          {hasAvailabilityConflict ? (
+            <AlertCircle aria-hidden="true" className="mt-0.5 shrink-0" size={17} />
+          ) : (
+            <CheckCircle2 aria-hidden="true" className="mt-0.5 shrink-0" size={17} />
+          )}
+          {hasAvailabilityConflict
+            ? "Uma ou mais datas deste período estão indisponíveis. Escolha outro período."
+            : "Período disponível para consulta."}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function SummaryItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">
+        {label}
+      </p>
+      <p className="mt-1 text-sm font-semibold leading-5 text-[var(--color-ink)]">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function SelectedHouseSummary({ house }: { house: BookingHouseOption }) {
   const facts = [
     {
-      label: "Hóspedes sob consulta",
+      label: house.guests ? `Até ${house.guests} hóspedes` : "Capacidade a confirmar",
       icon: Users,
     },
     {
@@ -332,7 +540,7 @@ function SelectedHouseSummary({ house }: { house: BookingHouseOption }) {
       icon: Waves,
     },
     {
-      label: house.barbecue ? "Churrasqueira" : "Churrasqueira sob consulta",
+      label: house.barbecue ? "Churrasqueira" : "Churrasqueira a confirmar",
       icon: Flame,
     },
   ];

@@ -70,7 +70,7 @@ Arquivos principais:
 
 - `src/data/reservations.ts`: bloqueios e reservas manuais locais.
 - `src/data/external-calendars.ts`: configuração de canais externos sem URLs privadas.
-- `src/generated/availability.json`: cache estático futuro gerado por sincronização.
+- `src/generated/availability.json`: cache estático futuro mantido pela sincronização.
 - `scripts/sync-calendars.ts`: script Node/CI para baixar ICS e gerar cache.
 - `docs/availability-architecture.md`: arquitetura técnica.
 - `docs/client-availability-guide.md`: guia operacional para o cliente.
@@ -129,7 +129,7 @@ $env:NEXT_PUBLIC_BASE_PATH="/nome-do-repositorio"; npm run build
 
 Nesse caso, use `NEXT_PUBLIC_SITE_URL` já com a URL final completa, por exemplo
 `https://usuario.github.io/nome-do-repositorio`. O arquivo `public/.nojekyll` é
-copiado para `out/.nojekyll` para preservar os assets gerados em `out/_next/`.
+copiado para `out/.nojekyll` para preservar os assets preparados em `out/_next/`.
 
 ### 1. Hospedagem cPanel / Apache
 

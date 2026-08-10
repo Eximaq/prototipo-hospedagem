@@ -13,5 +13,5 @@ export function generateStaticParams() {
 
 export default async function OldRoomDetailPage({ params }: Props) {
   const { slug } = await params;
-  return <StaticRedirect href={`/casas/${slug}/`} label="Ver casa" />;
+  return <StaticRedirect href={`/casas/${slug}/`} label="Conhecer a casa" />;
 }

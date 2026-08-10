@@ -4,11 +4,11 @@ export const amenityGroups = [
     items: ["Ar-condicionado", "Roupa de cama", "Smart TV", "Wi-Fi"],
   },
   {
-    title: "Casa",
-    items: ["Cozinha equipada", "Área externa", "Estacionamento", "Espaço para famílias"],
+    title: "Estrutura",
+    items: ["Cozinha equipada", "Estacionamento", "Suítes", "Espaço para famílias"],
   },
   {
     title: "Lazer",
-    items: ["Piscina", "Descanso", "Natureza", "Perto do mar"],
+    items: ["Piscina", "Churrasqueira", "Área externa", "Perto do mar"],
   },
 ];

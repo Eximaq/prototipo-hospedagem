@@ -4,6 +4,7 @@ import { CalendarDays, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { AvailabilityCalendar } from "@/components/availability/availability-calendar";
 import { formatDateForDisplay } from "@/lib/availability/date-utils";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/format";
 import type { AvailabilityRange } from "@/lib/availability/types";
 
@@ -67,13 +68,18 @@ export function DateRangeSelector({
         <span className="text-sm font-semibold text-[var(--color-ink)]">Datas</span>
         <button
           type="button"
-          onClick={() => setOpen((current) => !current)}
+          onClick={() => {
+            setOpen((current) => {
+              if (!current) trackEvent("open_calendar");
+              return !current;
+            });
+          }}
           className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-copper)] transition hover:text-[var(--color-ocean-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)]"
           aria-expanded={open}
           aria-controls={panelId}
         >
           <CalendarDays aria-hidden="true" size={15} />
-          {open ? "Fechar calendário" : "Ver calendário"}
+          {open ? "Fechar calendário" : "Escolher datas"}
         </button>
       </div>
 
@@ -105,7 +111,7 @@ export function DateRangeSelector({
       {open ? (
         <div
           id={panelId}
-          className="fixed inset-x-3 top-16 z-[70] max-h-[calc(100svh-5rem)] overflow-y-auto border border-[var(--color-line)] bg-[var(--color-shell)] p-3 shadow-[0_24px_70px_rgba(23,35,34,0.24)] sm:absolute sm:inset-auto sm:left-0 sm:top-[calc(100%+0.5rem)] sm:z-40 sm:w-full sm:max-w-[540px] sm:overflow-visible"
+          className="fixed inset-x-3 top-16 z-[70] max-h-[calc(100svh-5rem)] overflow-y-auto border border-[var(--color-line)] bg-[var(--color-shell)] p-3 shadow-[0_24px_70px_rgba(23,35,34,0.24)] sm:absolute sm:inset-auto sm:left-0 sm:top-[calc(100%+0.5rem)] sm:z-40 sm:w-[min(820px,calc(100vw-2rem))] sm:overflow-visible"
         >
           <div className="mb-2 flex items-center justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
@@ -125,7 +131,7 @@ export function DateRangeSelector({
             checkIn={checkIn}
             checkOut={checkOut}
             onChange={updateRange}
-            monthsToShow={1}
+            monthsToShow={2}
           />
         </div>
       ) : null}
@@ -168,7 +174,7 @@ function DateFieldButton({
           {label}
         </span>
         <span className="mt-0.5 block text-sm font-semibold text-[var(--color-ink)]">
-          {value ? formatDateForDisplay(value) : "Selecionar"}
+          {value ? formatDateForDisplay(value) : "Escolher data"}
         </span>
       </span>
       <CalendarDays

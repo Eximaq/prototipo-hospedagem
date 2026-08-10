@@ -61,7 +61,7 @@ export default function ContactPage() {
             <SectionHeading
               eyebrow="Atendimento"
               title="Duas casas, uma conversa objetiva."
-              description="Os links dos perfis ficam visíveis para conferência visual. Valores, regras e endereço exato devem ser confirmados pelo atendimento."
+              description="Escolha a casa, informe o período desejado e envie uma consulta clara para receber disponibilidade, valores e condições."
             />
             <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               {houses.map((house) =>

@@ -4,9 +4,9 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { createMetadata } from "@/lib/seo";
 
 export const metadata = createMetadata({
-  title: "As casas",
+  title: "Casas para temporada em Milagres",
   description:
-    "Compare Casa Turquesa e Casa Corais Milagres, veja galerias e consulte disponibilidade pelo WhatsApp.",
+    "Compare Casa Turquesa e Casa Corais Milagres, veja fotos, suítes, estrutura e consulte disponibilidade pelo WhatsApp.",
   path: "/casas/",
 });
 
@@ -17,9 +17,9 @@ export default function HousesPage() {
         <div className="mx-auto max-w-7xl">
           <SectionHeading
             as="h1"
-            eyebrow="As casas"
-            title="Compare as duas opções antes de escolher sua estadia."
-            description="Galerias, capacidade, comodidades e consulta pelo WhatsApp em uma experiência direta."
+            eyebrow="Casas Milagres"
+            title="Compare Casa Turquesa e Casa Corais Milagres."
+            description="Veja fotos reais, estrutura principal e escolha a casa mais adequada para sua viagem."
             compact
           />
         </div>

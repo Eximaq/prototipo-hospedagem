@@ -7,8 +7,8 @@ export function AmenitiesSection() {
       <div className="mx-auto grid max-w-7xl gap-7 md:grid-cols-[0.7fr_1fr]">
         <SectionHeading
           eyebrow="Comodidades"
-          title="Estrutura apresentada com calma e clareza."
-          description="Itens essenciais para quem busca conforto, praticidade e bons momentos em família."
+          title="Estrutura para dias confortáveis."
+          description="Conforto, lazer e estrutura para aproveitar a casa entre um passeio e outro."
           compact
         />
         <div className="grid gap-4 md:grid-cols-3">

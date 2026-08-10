@@ -10,7 +10,9 @@ export const houses: House[] = [
     shortDescription:
       "Casa de temporada com 7 suítes, piscina, Wi-Fi e churrasqueira para dias de descanso em Milagres.",
     fullDescription:
-      "A Casa Turquesa foi pensada para famílias e grupos que querem planejar dias tranquilos em São Miguel dos Milagres. A casa combina 7 suítes, áreas de convivência, piscina, Wi-Fi e churrasqueira para uma estadia confortável perto do mar.",
+      "A Casa Turquesa combina 7 suítes, áreas de convivência, piscina, Wi-Fi e churrasqueira para famílias e grupos que querem dias tranquilos em São Miguel dos Milagres.",
+    idealFor: "Famílias e grupos maiores que precisam de suítes independentes e áreas de convivência.",
+    capacityNote: "Capacidade final confirmada no atendimento",
     location: {
       label: "São Miguel dos Milagres, AL",
       mapQuery: "São Miguel dos Milagres Alagoas Brasil",
@@ -20,7 +22,7 @@ export const houses: House[] = [
       type: "image",
       image: "/images/casa-01/fachada.png",
     },
-    guests: 8,
+    guests: null,
     suites: 7,
     bedrooms: 7,
     beds: 7,
@@ -44,7 +46,7 @@ export const houses: House[] = [
       "Churrasqueira e área externa",
     ],
     rules: [
-      "Valores sob consulta",
+      "Valores informados no atendimento",
       "Capacidade confirmada no atendimento",
       "Regras completas enviadas no atendimento",
     ],
@@ -53,6 +55,34 @@ export const houses: House[] = [
       "Check-in e check-out a combinar",
       "Wi-Fi, piscina e churrasqueira disponíveis",
       "Condições comerciais enviadas pelo WhatsApp",
+    ],
+    policies: [
+      { label: "Check-in", value: "Horário confirmado durante o atendimento" },
+      { label: "Check-out", value: "Horário confirmado durante o atendimento" },
+      { label: "Pets", value: "Política confirmada antes da pré-reserva" },
+      { label: "Eventos", value: "Regras e limites enviados pelo atendimento" },
+      { label: "Noites mínimas", value: "Definidas conforme período solicitado" },
+      { label: "Cancelamento", value: "Condições informadas antes da confirmação" },
+    ],
+    faqs: [
+      {
+        question: "Qual a capacidade da Casa Turquesa?",
+        answer:
+          "A casa possui 7 suítes. A capacidade máxima oficial é confirmada pelo atendimento antes da pré-reserva.",
+      },
+      {
+        question: "A Casa Turquesa tem piscina e churrasqueira?",
+        answer: "Sim. A casa conta com piscina, churrasqueira, Wi-Fi e área externa.",
+      },
+      {
+        question: "A casa possui estacionamento?",
+        answer: "O estacionamento está listado entre as comodidades da Casa Turquesa.",
+      },
+      {
+        question: "Como consultar disponibilidade?",
+        answer:
+          "Escolha a casa, selecione entrada e saída no calendário e envie a solicitação pelo WhatsApp.",
+      },
     ],
     images: [
       {
@@ -129,6 +159,8 @@ export const houses: House[] = [
       "Casa para temporada com 3 suítes, piscina, Wi-Fi e churrasqueira em São Miguel dos Milagres.",
     fullDescription:
       "A Casa Corais Milagres é uma opção para quem busca natureza, privacidade e espaço para reunir família ou amigos. A casa conta com 3 suítes, piscina, Wi-Fi e churrasqueira; o visitante pode navegar pelas fotos e enviar uma consulta para confirmar disponibilidade, valores e condições.",
+    idealFor: "Grupos menores que procuram privacidade, piscina e uma casa prática para dias em Milagres.",
+    capacityNote: "Capacidade final confirmada no atendimento",
     location: {
       label: "São Miguel dos Milagres, AL",
       mapQuery: "São Miguel dos Milagres Alagoas Brasil",
@@ -138,7 +170,7 @@ export const houses: House[] = [
       type: "image",
       image: "/images/casa-02/piscina.jpg",
     },
-    guests: 10,
+    guests: null,
     suites: 3,
     bedrooms: 3,
     beds: 3,
@@ -162,7 +194,7 @@ export const houses: House[] = [
       "Próxima ao clima de praia de Milagres",
     ],
     rules: [
-      "Valores sob consulta",
+      "Valores informados no atendimento",
       "Capacidade confirmada no atendimento",
       "Regras completas enviadas no atendimento",
     ],
@@ -170,6 +202,34 @@ export const houses: House[] = [
       "Localização aproximada: Milagres, AL",
       "Wi-Fi, piscina e churrasqueira disponíveis",
       "Condições comerciais enviadas no WhatsApp",
+    ],
+    policies: [
+      { label: "Check-in", value: "Horário confirmado durante o atendimento" },
+      { label: "Check-out", value: "Horário confirmado durante o atendimento" },
+      { label: "Pets", value: "Política confirmada antes da pré-reserva" },
+      { label: "Eventos", value: "Regras e limites enviados pelo atendimento" },
+      { label: "Noites mínimas", value: "Definidas conforme período solicitado" },
+      { label: "Cancelamento", value: "Condições informadas antes da confirmação" },
+    ],
+    faqs: [
+      {
+        question: "Qual a capacidade da Casa Corais Milagres?",
+        answer:
+          "A casa possui 3 suítes. A capacidade máxima oficial é confirmada pelo atendimento antes da pré-reserva.",
+      },
+      {
+        question: "A Casa Corais tem piscina e churrasqueira?",
+        answer: "Sim. A casa conta com piscina, churrasqueira, Wi-Fi e área externa.",
+      },
+      {
+        question: "A casa possui estacionamento?",
+        answer: "O estacionamento está listado entre as comodidades da Casa Corais Milagres.",
+      },
+      {
+        question: "Como consultar disponibilidade?",
+        answer:
+          "Escolha a casa, selecione entrada e saída no calendário e envie a solicitação pelo WhatsApp.",
+      },
     ],
     images: [
       {
@@ -244,21 +304,25 @@ export const experiences: Experience[] = [
     title: "Praia e natureza",
     description:
       "São Miguel dos Milagres reúne mar claro, coqueiros e uma rotina tranquila para dias de pausa.",
+    image: "/images/casa-02/praia.jpg",
   },
   {
     title: "Piscina e descanso",
     description:
       "Áreas de lazer para desacelerar, aproveitar o sol e viver dias de pausa.",
+    image: "/images/casa-01/piscina.png",
   },
   {
     title: "Momentos em família",
     description:
       "Casas com suítes, áreas de convivência, piscina e churrasqueira para reunir família e amigos.",
+    image: "/images/casa-02/familia.jpg",
   },
   {
     title: "Gastronomia e passeios",
     description:
       "Uma base confortável para explorar praias, restaurantes e passeios da região.",
+    image: "/images/casa-01/deck-piscina.png",
   },
 ];
 
@@ -267,6 +331,7 @@ export const testimonials: Testimonial[] = [
     name: "Mariana Albuquerque",
     context: "Viagem em família",
     stay: "Casa Turquesa",
+    placeholder: true,
     quote:
       "Escolhemos a Casa Turquesa por causa das 7 suítes e foi a decisão certa. Todo mundo ficou confortável, a piscina foi usada todos os dias e a área da churrasqueira funcionou muito bem para reunir a família.",
   },
@@ -274,6 +339,7 @@ export const testimonials: Testimonial[] = [
     name: "Rafael Menezes",
     context: "Fim de semana com amigos",
     stay: "Casa Corais Milagres",
+    placeholder: true,
     quote:
       "A Casa Corais atendeu muito bem nosso grupo. As 3 suítes deram privacidade, o Wi-Fi funcionou bem e a área externa com piscina deixou o fim de semana bem mais tranquilo.",
   },
@@ -281,6 +347,7 @@ export const testimonials: Testimonial[] = [
     name: "Camila e Bruno",
     context: "Férias com crianças",
     stay: "Casa Turquesa",
+    placeholder: true,
     quote:
       "A Casa Turquesa tem espaço de sobra para uma viagem com crianças. As suítes ajudam na organização da família e a piscina virou o lugar preferido depois dos passeios em Milagres.",
   },
@@ -288,6 +355,7 @@ export const testimonials: Testimonial[] = [
     name: "Família Carvalho",
     context: "Temporada em Milagres",
     stay: "Casa Corais Milagres",
+    placeholder: true,
     quote:
       "Ficamos na Casa Corais para aproveitar São Miguel dos Milagres com mais privacidade. A casa é prática, tem piscina, churrasqueira e uma área de convivência boa para descansar no fim do dia.",
   },

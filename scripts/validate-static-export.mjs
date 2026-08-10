@@ -370,9 +370,13 @@ async function runBrowserTests(baseUrl, report) {
       };
       const form = document.querySelector('form');
       const name = document.querySelector('input[autocomplete="name"]');
+      const notes = document.querySelector('textarea');
+      const preReservation = [...document.querySelectorAll('button')]
+        .find((item) => item.textContent.includes("dados de pré-reserva"));
+      preReservation?.click();
+      setTimeout(() => {
       const cpf = document.querySelector('input[placeholder="000.000.000-00"]');
       const birth = document.querySelector('input[autocomplete="bday"]');
-      const notes = document.querySelector('textarea');
       if (!form || !name || !cpf || !birth || !notes) {
         return resolve({ ok: false, reason: "form fields missing" });
       }
@@ -391,6 +395,7 @@ async function runBrowserTests(baseUrl, report) {
       setTimeout(() => {
         form.requestSubmit();
         setTimeout(() => resolve({ ok: !!window.__opened, opened: window.__opened }), 600);
+      }, 120);
       }, 120);
     })`);
     const decodedWhatsApp = formResult.opened?.url ? decodeURIComponent(formResult.opened.url) : "";

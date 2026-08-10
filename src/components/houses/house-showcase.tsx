@@ -14,13 +14,13 @@ export function HouseShowcase() {
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <SectionHeading
-            eyebrow="Escolha sua experiência"
-            title="Escolha entre Casa Turquesa e Casa Corais Milagres."
-            description="Fotos em destaque, informações essenciais e consulta direta pelo WhatsApp."
+            eyebrow="Casas"
+            title="Duas casas para viver Milagres com conforto e privacidade."
+            description="Compare as propriedades, veja fotos reais e escolha a casa que combina com sua viagem."
             compact
           />
           <p className="max-w-md text-sm leading-6 text-[var(--color-muted)]">
-            Compare capacidade, estrutura, comodidades e escolha a casa ideal para sua estadia.
+            As duas opções contam com piscina, Wi-Fi e churrasqueira. Os detalhes completos ficam na página de cada casa.
           </p>
         </div>
 
@@ -51,9 +51,12 @@ export function HouseShowcase() {
                 <p className="text-sm leading-6 text-[var(--color-muted)]">
                   {house.shortDescription}
                 </p>
+                <p className="border-l-2 border-[var(--color-copper)] pl-3 text-sm font-semibold leading-6 text-[var(--color-ink)]">
+                  {house.idealFor}
+                </p>
                 <HouseFacts house={house} compact />
                 <div className="flex flex-wrap gap-2">
-                  {house.amenities.slice(0, 6).map((amenity) => (
+                  {house.amenities.slice(0, 5).map((amenity) => (
                     <span
                       key={amenity}
                       className="inline-flex min-h-8 items-center gap-1.5 border border-[var(--color-line)] bg-white/55 px-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.09em] text-[var(--color-muted)]"
@@ -68,14 +71,14 @@ export function HouseShowcase() {
                     href={`/casas/${house.slug}/`}
                     className="inline-flex min-h-11 items-center justify-center gap-2 border border-[var(--color-ocean)] px-3 text-sm font-semibold text-[var(--color-ocean)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
                   >
-                    Ver detalhes
+                    Conhecer a casa
                     <ArrowRight aria-hidden="true" size={16} />
                   </Link>
                   <Link
                     href={`/casas/${house.slug}/#consultar`}
                     className="inline-flex min-h-11 items-center justify-center bg-[var(--color-copper)] px-3 text-sm font-semibold text-[var(--color-ink)] shadow-[0_10px_24px_rgba(254,116,28,0.18)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
                   >
-                    Escolher
+                    Consultar disponibilidade
                   </Link>
                 </div>
               </div>

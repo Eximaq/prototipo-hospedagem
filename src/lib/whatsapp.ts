@@ -1,5 +1,5 @@
 import { siteConfig } from "@/data/site-config";
-import { formatDateForDisplay } from "@/lib/availability/date-utils";
+import { calculateNights, formatDateForDisplay } from "@/lib/availability/date-utils";
 import { formatCPF } from "@/lib/cpf";
 
 export type WhatsAppInquiry = {
@@ -27,26 +27,38 @@ export function buildWhatsAppMessage({
   birthDate,
   notes,
 }: WhatsAppInquiry) {
-  const lines = [
-    "Olá! Gostaria de consultar disponibilidade nas Casas Milagres.",
-    "",
-    "HOSPEDAGEM",
-    "",
-    `Casa: ${property || room || "Não informada"}`,
-    `Entrada: ${formatDateForDisplay(checkIn)}`,
-    `Saída: ${formatDateForDisplay(checkOut)}`,
-    "",
-    "HÓSPEDES",
-    "",
-    `Adultos: ${adults ?? "Não informado"}`,
-    `Crianças: ${children ?? 0}`,
-    "",
-    "RESPONSÁVEL",
-    "",
-    `Nome: ${responsibleName?.trim() || "Não informado"}`,
-    `CPF: ${cpf ? formatCPF(cpf) : "Não informado"}`,
-    `Nascimento: ${formatDateForDisplay(birthDate)}`,
-  ];
+  const nights = calculateNights(checkIn, checkOut);
+  const lines = ["Olá! Gostaria de consultar uma estadia nas Casas Milagres."];
+
+  const stayLines = [
+    property || room ? `Casa: ${property || room}` : "",
+    checkIn ? `Entrada: ${formatDateForDisplay(checkIn)}` : "",
+    checkOut ? `Saída: ${formatDateForDisplay(checkOut)}` : "",
+    nights ? `Estadia: ${nights} noite${nights === 1 ? "" : "s"}` : "",
+  ].filter(Boolean);
+
+  if (stayLines.length) {
+    lines.push("", "HOSPEDAGEM", "", ...stayLines);
+  }
+
+  const guestLines = [
+    typeof adults === "number" ? `Adultos: ${adults}` : "",
+    typeof children === "number" && children > 0 ? `Crianças: ${children}` : "",
+  ].filter(Boolean);
+
+  if (guestLines.length) {
+    lines.push("", "HÓSPEDES", "", ...guestLines);
+  }
+
+  const responsibleLines = [
+    responsibleName?.trim() ? `Nome: ${responsibleName.trim()}` : "",
+    cpf ? `CPF: ${formatCPF(cpf)}` : "",
+    birthDate ? `Nascimento: ${formatDateForDisplay(birthDate)}` : "",
+  ].filter(Boolean);
+
+  if (responsibleLines.length) {
+    lines.push("", "RESPONSÁVEL", "", ...responsibleLines);
+  }
 
   if (notes?.trim()) {
     lines.push("", "OBSERVAÇÕES", "", notes.trim());
@@ -54,7 +66,7 @@ export function buildWhatsAppMessage({
 
   lines.push(
     "",
-    "Gostaria de receber informações sobre disponibilidade, valores e condições.",
+    "Gostaria de receber informações sobre disponibilidade, valores e condições para esse período.",
   );
 
   return lines.join("\n");

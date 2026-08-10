@@ -17,7 +17,7 @@ export function AvailabilitySection() {
           <SectionHeading
             eyebrow="Consulta"
             title="Escolha sua casa e comece a planejar seus dias em Milagres."
-            description="A mensagem chega ao WhatsApp com casa, datas, hóspedes, responsável e observações."
+            description="Primeiro selecione casa, datas e hóspedes. Depois envie uma consulta objetiva pelo WhatsApp."
             compact
           />
         </div>
