@@ -24,6 +24,8 @@ export function GuestSelector({
   onChange,
 }: GuestSelectorProps) {
   const totalGuests = adults + childGuests;
+  const maxAdults = maxGuests ? Math.max(1, maxGuests - childGuests) : undefined;
+  const maxChildren = maxGuests ? Math.max(0, maxGuests - adults) : undefined;
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -33,6 +35,7 @@ export function GuestSelector({
           className={inputClassName}
           type="number"
           min={1}
+          max={maxAdults}
           value={adults}
           onChange={(event) => onChange("adults", Number(event.target.value))}
           aria-invalid={Boolean(errors.adults)}
@@ -51,6 +54,7 @@ export function GuestSelector({
           className={inputClassName}
           type="number"
           min={0}
+          max={maxChildren}
           value={childGuests}
           onChange={(event) => onChange("children", Number(event.target.value))}
           aria-invalid={Boolean(errors.children)}

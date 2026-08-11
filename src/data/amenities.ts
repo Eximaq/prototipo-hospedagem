@@ -1,14 +1,14 @@
 export const amenityGroups = [
   {
     title: "Conforto",
-    items: ["Ar-condicionado", "Roupa de cama", "Smart TV", "Wi-Fi"],
+    items: ["Suítes climatizadas", "Wi-Fi", "Cafeteira", "Apoio para café da manhã e almoço"],
   },
   {
     title: "Estrutura",
-    items: ["Cozinha equipada", "Estacionamento", "Suítes", "Espaço para famílias"],
+    items: ["Cozinha equipada", "Churrasqueira", "Segurança 24h", "Espaço para famílias"],
   },
   {
     title: "Lazer",
-    items: ["Piscina", "Churrasqueira", "Área externa", "Perto do mar"],
+    items: ["Piscina privativa", "Beach tennis ou esportes de praia", "Acesso à praia", "Área externa"],
   },
 ];

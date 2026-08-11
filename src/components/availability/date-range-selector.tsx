@@ -12,7 +12,11 @@ type DateRangeSelectorProps = {
   unavailableRanges: AvailabilityRange[];
   checkIn: string;
   checkOut: string;
+  minNights?: number | null;
+  maxNights?: number | null;
+  stayRuleLabel?: string;
   onChange: (range: { checkIn: string; checkOut: string }) => void;
+  onInvalidStay?: (nights: number) => void;
   error?: string;
 };
 
@@ -20,7 +24,11 @@ export function DateRangeSelector({
   unavailableRanges,
   checkIn,
   checkOut,
+  minNights,
+  maxNights,
+  stayRuleLabel,
   onChange,
+  onInvalidStay,
   error,
 }: DateRangeSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -32,10 +40,7 @@ export function DateRangeSelector({
     if (!open) return;
 
     function closeOnOutsideClick(event: MouseEvent | TouchEvent) {
-      if (
-        event.target instanceof Node &&
-        !containerRef.current?.contains(event.target)
-      ) {
+      if (event.target instanceof Node && !containerRef.current?.contains(event.target)) {
         setOpen(false);
       }
     }
@@ -107,6 +112,9 @@ export function DateRangeSelector({
           {error}
         </p>
       ) : null}
+      {stayRuleLabel && !error ? (
+        <p className="mt-2 text-sm text-[var(--color-muted)]">{stayRuleLabel}</p>
+      ) : null}
 
       {open ? (
         <div
@@ -131,6 +139,9 @@ export function DateRangeSelector({
             checkIn={checkIn}
             checkOut={checkOut}
             onChange={updateRange}
+            minNights={minNights}
+            maxNights={maxNights}
+            onInvalidStay={onInvalidStay}
             monthsToShow={2}
           />
         </div>

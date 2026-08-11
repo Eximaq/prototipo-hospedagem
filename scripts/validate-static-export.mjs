@@ -47,7 +47,8 @@ function createStaticServer() {
     }
 
     response.writeHead(200, {
-      "content-type": mimeTypes[path.extname(filePath).toLowerCase()] || "application/octet-stream",
+      "content-type":
+        mimeTypes[path.extname(filePath).toLowerCase()] || "application/octet-stream",
     });
     createReadStream(filePath).pipe(response);
   });
@@ -94,7 +95,8 @@ class CDP {
       if (message.id && this.pending.has(message.id)) {
         const { resolve, reject } = this.pending.get(message.id);
         this.pending.delete(message.id);
-        if (message.error) reject(new Error(message.error.message || JSON.stringify(message.error)));
+        if (message.error)
+          reject(new Error(message.error.message || JSON.stringify(message.error)));
         else resolve(message.result);
         return;
       }
@@ -190,7 +192,9 @@ function findEdge() {
     "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
     "C:/Program Files/Microsoft/Edge/Application/msedge.exe",
     process.env.MSEDGE_PATH,
-  ].filter(Boolean).find((candidate) => existsSync(candidate));
+  ]
+    .filter(Boolean)
+    .find((candidate) => existsSync(candidate));
 }
 
 async function runBrowserTests(baseUrl, report) {
@@ -201,17 +205,24 @@ async function runBrowserTests(baseUrl, report) {
   }
 
   const debugPort = 9500 + Math.floor(Math.random() * 300);
-  const profilePath = path.join(process.env.TEMP || ".", `casas-milagres-edge-${Date.now()}`);
-  const edge = spawn(edgePath, [
-    "--headless=new",
-    "--disable-gpu",
-    "--disable-extensions",
-    "--no-first-run",
-    "--no-default-browser-check",
-    `--remote-debugging-port=${debugPort}`,
-    `--user-data-dir=${profilePath}`,
-    "about:blank",
-  ], { stdio: "ignore" });
+  const profilePath = path.join(
+    process.env.TEMP || ".",
+    `casas-milagres-edge-${Date.now()}`,
+  );
+  const edge = spawn(
+    edgePath,
+    [
+      "--headless=new",
+      "--disable-gpu",
+      "--disable-extensions",
+      "--no-first-run",
+      "--no-default-browser-check",
+      `--remote-debugging-port=${debugPort}`,
+      `--user-data-dir=${profilePath}`,
+      "about:blank",
+    ],
+    { stdio: "ignore" },
+  );
 
   let cdp;
 
@@ -254,7 +265,9 @@ async function runBrowserTests(baseUrl, report) {
     await cdp.send("Log.enable");
     await sleep(1200);
 
-    const slider = await evalValue(cdp, `new Promise((resolve) => {
+    const slider = await evalValue(
+      cdp,
+      `new Promise((resolve) => {
       const track = document.querySelector('div[style*="translateX"]');
       const before = track ? getComputedStyle(track).transform : "";
       const button = [...document.querySelectorAll('button[aria-label]')]
@@ -262,11 +275,14 @@ async function runBrowserTests(baseUrl, report) {
       if (!track || !button) return resolve({ ok: false, reason: "missing slider controls" });
       button.click();
       setTimeout(() => resolve({ ok: before !== getComputedStyle(track).transform }), 700);
-    })`);
+    })`,
+    );
     if (slider.ok) report.pass("slider desktop", "transform changed");
     else report.fail("slider desktop", slider.reason);
 
-    const lightbox = await evalValue(cdp, `new Promise((resolve) => {
+    const lightbox = await evalValue(
+      cdp,
+      `new Promise((resolve) => {
       const open = [...document.querySelectorAll('button[aria-label]')]
         .find((item) => (item.getAttribute('aria-label') || "").startsWith("Abrir galeria"));
       if (!open) return resolve({ ok: false, reason: "open button missing" });
@@ -278,7 +294,8 @@ async function runBrowserTests(baseUrl, report) {
         close.click();
         setTimeout(() => resolve({ ok: !document.querySelector('[role="dialog"][aria-modal="true"]') }), 250);
       }, 350);
-    })`);
+    })`,
+    );
     if (lightbox.ok) report.pass("lightbox", "opens and closes");
     else report.fail("lightbox", lightbox.reason);
 
@@ -289,7 +306,9 @@ async function runBrowserTests(baseUrl, report) {
       mobile: true,
     });
     await navigate(cdp, `${baseUrl}/`);
-    const mobileMenu = await evalValue(cdp, `new Promise((resolve) => {
+    const mobileMenu = await evalValue(
+      cdp,
+      `new Promise((resolve) => {
       const button = document.querySelector('button[aria-controls="mobile-menu"]');
       const menu = document.querySelector('#mobile-menu');
       if (!button || !menu) return resolve({ ok: false });
@@ -302,17 +321,26 @@ async function runBrowserTests(baseUrl, report) {
             document.body.style.overflow === "hidden",
         });
       }, 350);
-    })`);
+    })`,
+    );
     if (mobileMenu.ok) report.pass("mobile menu", "opens on mobile viewport");
     else report.fail("mobile menu", JSON.stringify(mobileMenu));
-    await evalValue(cdp, `document.querySelector('button[aria-controls="mobile-menu"]')?.click(); true`);
+    await evalValue(
+      cdp,
+      `document.querySelector('button[aria-controls="mobile-menu"]')?.click(); true`,
+    );
 
     await cdp.send("Emulation.clearDeviceMetricsOverride");
     await navigate(cdp, `${baseUrl}/contato/?utm=static#consultar`, 2600);
-    await waitFor(cdp, `[...document.querySelectorAll('button[aria-label]')]
-      .some((item) => (item.getAttribute('aria-label') || "").includes("Selecionar data de entrada"))`);
+    await waitFor(
+      cdp,
+      `[...document.querySelectorAll('button[aria-label]')]
+      .some((item) => (item.getAttribute('aria-label') || "").includes("Selecionar data de entrada"))`,
+    );
 
-    const calendar = await evalValue(cdp, `new Promise((resolve) => {
+    const calendar = await evalValue(
+      cdp,
+      `new Promise((resolve) => {
       const byLabel = (label) => [...document.querySelectorAll('button[aria-label]')]
         .find((item) => (item.getAttribute('aria-label') || "").includes(label));
       const trigger = byLabel("Selecionar data de entrada");
@@ -323,7 +351,7 @@ async function runBrowserTests(baseUrl, report) {
       const findDates = () => {
         const blocked = byLabel("10/09/2026 indispon");
         const checkIn = byLabel("16/09/2026 dispon");
-        const checkOut = byLabel("18/09/2026 dispon");
+        const checkOut = byLabel("20/09/2026 dispon");
         if (checkIn && checkOut) {
           if (blocked) return resolve({ ok: false, reason: "unexpected blocked date" });
           checkIn.click();
@@ -331,8 +359,8 @@ async function runBrowserTests(baseUrl, report) {
             checkOut.click();
             setTimeout(() => {
               resolve({
-                ok: document.body.textContent.includes("16/09/2026") &&
-                  document.body.textContent.includes("18/09/2026"),
+                  ok: document.body.textContent.includes("16/09/2026") &&
+                  document.body.textContent.includes("20/09/2026"),
                 selected: document.body.textContent.includes("16/09/2026"),
                 blockedPresent: !!blocked,
               });
@@ -358,11 +386,18 @@ async function runBrowserTests(baseUrl, report) {
       };
 
       setTimeout(findDates, 250);
-    })`);
-    if (calendar.ok) report.pass("availability calendar", "opens compact selector with no test blocks and selects range");
+    })`,
+    );
+    if (calendar.ok)
+      report.pass(
+        "availability calendar",
+        "opens compact selector with no test blocks and selects range",
+      );
     else report.fail("availability calendar", JSON.stringify(calendar));
 
-    const formResult = await evalValue(cdp, `new Promise((resolve) => {
+    const formResult = await evalValue(
+      cdp,
+      `new Promise((resolve) => {
       window.__opened = null;
       window.open = (url, target, features) => {
         window.__opened = { url, target, features };
@@ -397,8 +432,11 @@ async function runBrowserTests(baseUrl, report) {
         setTimeout(() => resolve({ ok: !!window.__opened, opened: window.__opened }), 600);
       }, 120);
       }, 120);
-    })`);
-    const decodedWhatsApp = formResult.opened?.url ? decodeURIComponent(formResult.opened.url) : "";
+    })`,
+    );
+    const decodedWhatsApp = formResult.opened?.url
+      ? decodeURIComponent(formResult.opened.url)
+      : "";
     const validWhatsApp =
       formResult.ok &&
       /^https:\/\/wa\.me\/5582993563898\?text=/.test(formResult.opened.url || "") &&
@@ -407,26 +445,73 @@ async function runBrowserTests(baseUrl, report) {
     if (validWhatsApp) report.pass("WhatsApp form", "opens encoded professional message");
     else report.fail("WhatsApp form", JSON.stringify(formResult));
 
+    await navigate(
+      cdp,
+      `${baseUrl}/contato/?casa=casa-turquesa-05&checkIn=2026-09-16&checkOut=2026-09-24&adults=20#consultar`,
+      2600,
+    );
+    await waitFor(cdp, `document.querySelector('select')?.value === "casa-turquesa-05"`);
+    const bookingRules = await evalValue(
+      cdp,
+      `new Promise((resolve) => {
+        setTimeout(() => {
+          const text = document.body.textContent || "";
+          const adults = document.querySelector('input[type="number"]');
+          const submit = document.querySelector('button[type="submit"]');
+          resolve({
+            ok:
+              text.includes("4 noites") &&
+              adults?.value === "14" &&
+              submit?.disabled === true,
+            hasNightError: text.includes("4 noites"),
+            adultValue: adults?.value || null,
+            submitDisabled: submit?.disabled === true,
+          });
+        }, 500);
+      })`,
+    );
+    if (bookingRules.ok) {
+      report.pass("booking rule validation", "blocks long stays and clamps guests");
+    } else {
+      report.fail("booking rule validation", JSON.stringify(bookingRules));
+    }
+
     await navigate(cdp, `${baseUrl}/casas/casa-turquesa-05/`, 2600);
     await waitFor(cdp, `document.querySelector('select')?.value === "casa-turquesa-05"`);
-    const housePage = await evalValue(cdp, `({
+    const housePage = await evalValue(
+      cdp,
+      `({
       hasCalendar: [...document.querySelectorAll('button[aria-label]')]
         .some((item) => (item.getAttribute('aria-label') || "").includes("Selecionar data de entrada")),
       hasMap: [...document.querySelectorAll('a')].some((item) => item.href.startsWith("https://www.google.com/maps")) &&
         [...document.querySelectorAll('a')].some((item) => item.href.startsWith("https://waze.com/")),
       hasAutoHouse: document.querySelector('select')?.value === "casa-turquesa-05",
       hasHero: !!document.querySelector('img[src*="casa-01"]') || !!document.querySelector('video'),
-    })`);
-    if (housePage.hasCalendar && housePage.hasMap && housePage.hasAutoHouse && housePage.hasHero) {
-      report.pass("house detail", "compact date selector, map, auto house and hero present");
+    })`,
+    );
+    if (
+      housePage.hasCalendar &&
+      housePage.hasMap &&
+      housePage.hasAutoHouse &&
+      housePage.hasHero
+    ) {
+      report.pass(
+        "house detail",
+        "compact date selector, map, auto house and hero present",
+      );
     } else {
       report.fail("house detail", JSON.stringify(housePage));
     }
 
     const badConsole = consoleIssues.filter(
-      (issue) => !/favicon|Tracking Prevention blocked access to storage|google\.com\/maps|google\.com\/gen_204/i.test(issue),
+      (issue) =>
+        !/favicon|Tracking Prevention blocked access to storage|google\.com\/maps|google\.com\/gen_204/i.test(
+          issue,
+        ),
     );
-    const badNetwork = [...new Set(networkIssues)].filter((issue) => !issue.includes("/404"));
+    const badNetwork = [...new Set(networkIssues)].filter(
+      (issue) => !issue.includes("/404"),
+    );
     if (badConsole.length) {
       report.fail("browser console", badConsole.slice(0, 5).join(" | "));
     } else {
@@ -471,13 +556,27 @@ async function runHttpTests(baseUrl, report) {
     else report.fail(`refresh ${route}`, `status=${response.status}`);
   }
 
-  for (const file of ["/robots.txt", "/sitemap.xml", "/favicon.ico", "/icon.svg", "/.nojekyll", "/.htaccess", "/_redirects"]) {
+  for (const file of [
+    "/robots.txt",
+    "/sitemap.xml",
+    "/favicon.ico",
+    "/icon.svg",
+    "/.nojekyll",
+    "/.htaccess",
+    "/_redirects",
+  ]) {
     const status = await fetchStatus(`${baseUrl}${file}`);
     if (status === 200) report.pass(`static file ${file}`, "200");
     else report.fail(`static file ${file}`, `status=${status}`);
   }
 
-  const pages = ["/", "/casas/", "/casas/casa-turquesa-05/", "/casas/casa-corais-milagres/", "/contato/"];
+  const pages = [
+    "/",
+    "/casas/",
+    "/casas/casa-turquesa-05/",
+    "/casas/casa-corais-milagres/",
+    "/contato/",
+  ];
   const assets = new Set();
   const links = new Set();
   const attrPattern = /(?:href|src)=["']([^"']+)["']/gi;
@@ -504,7 +603,10 @@ async function runHttpTests(baseUrl, report) {
       if (url.origin !== baseUrl) continue;
       if (url.hash) url.hash = "";
 
-      if (url.pathname.startsWith("/_next/") || /\.(css|js|ico|svg|png|jpe?g|webp|avif|woff2?)$/i.test(url.pathname)) {
+      if (
+        url.pathname.startsWith("/_next/") ||
+        /\.(css|js|ico|svg|png|jpe?g|webp|avif|woff2?)$/i.test(url.pathname)
+      ) {
         assets.add(url.pathname + url.search);
       } else {
         links.add(url.pathname + url.search);
@@ -520,7 +622,8 @@ async function runHttpTests(baseUrl, report) {
 
   for (const link of links) {
     const status = await fetchStatus(`${baseUrl}${link}`);
-    if (status !== 200 && status !== 404) report.fail(`internal link ${link}`, `status=${status}`);
+    if (status !== 200 && status !== 404)
+      report.fail(`internal link ${link}`, `status=${status}`);
   }
   report.pass("internal link crawl", `${links.size} links checked`);
 }
@@ -539,7 +642,9 @@ async function main() {
   };
 
   const server = createStaticServer();
-  const port = await new Promise((resolve) => server.listen(0, "127.0.0.1", () => resolve(server.address().port)));
+  const port = await new Promise((resolve) =>
+    server.listen(0, "127.0.0.1", () => resolve(server.address().port)),
+  );
   const baseUrl = `http://127.0.0.1:${port}`;
 
   try {
@@ -551,7 +656,9 @@ async function main() {
 
   const failed = results.filter((result) => !result.ok);
   for (const result of results) {
-    console.log(`${result.ok ? "PASS" : "FAIL"} ${result.name}${result.detail ? ` - ${result.detail}` : ""}`);
+    console.log(
+      `${result.ok ? "PASS" : "FAIL"} ${result.name}${result.detail ? ` - ${result.detail}` : ""}`,
+    );
   }
   console.log(`SUMMARY ${results.length - failed.length}/${results.length} passed`);
   if (failed.length) process.exit(1);

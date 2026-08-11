@@ -32,12 +32,12 @@ const homeFaq = [
   {
     question: "Qual casa combina melhor com grupos maiores?",
     answer:
-      "A Casa Turquesa possui 7 suítes e atende melhor famílias e grupos maiores.",
+      "A Casa Turquesa recebe até 14 pessoas e possui 7 suítes. A Casa Corais Milagres recebe até 8 pessoas em 3 suítes climatizadas.",
   },
   {
-    question: "A capacidade máxima já está definida?",
+    question: "As casas aceitam pets?",
     answer:
-      "A capacidade máxima oficial deve ser confirmada no atendimento antes da pré-reserva.",
+      "Não. Casa Turquesa e Casa Corais Milagres não aceitam pets.",
   },
 ];
 

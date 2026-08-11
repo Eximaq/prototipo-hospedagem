@@ -16,6 +16,8 @@ export function getBookingHouseOptions() {
     name: house.name,
     locationLabel: house.location.label,
     guests: house.guests,
+    minNights: house.minNights,
+    maxNights: house.maxNights ?? null,
     suites: house.suites,
     bedrooms: house.bedrooms,
     bathrooms: house.bathrooms,

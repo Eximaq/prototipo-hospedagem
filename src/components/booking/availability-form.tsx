@@ -26,16 +26,11 @@ import {
   isISODate,
 } from "@/lib/availability/date-utils";
 import { trackEvent } from "@/lib/analytics";
-import {
-  isRangeAvailableFromRanges,
-} from "@/lib/availability/merge";
+import { isRangeAvailableFromRanges } from "@/lib/availability/merge";
 import { birthDateInputToISO, formatBirthDateInput } from "@/lib/birth-date";
 import { formatCPF, isValidCPF } from "@/lib/cpf";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
-import type {
-  AvailabilityRange,
-  PublicHouseAvailability,
-} from "@/lib/availability/types";
+import type { AvailabilityRange, PublicHouseAvailability } from "@/lib/availability/types";
 
 export type BookingHouseOption = {
   id: string;
@@ -44,6 +39,8 @@ export type BookingHouseOption = {
   name: string;
   locationLabel: string;
   guests: number | null;
+  minNights: number;
+  maxNights?: number | null;
   suites: number;
   bedrooms: number;
   bathrooms: number;
@@ -64,9 +61,61 @@ type FormState = {
   notes: string;
 };
 
-type PrefillDetail = Partial<Pick<FormState, "houseSlug" | "checkIn" | "checkOut" | "adults" | "children">>;
+type PrefillDetail = Partial<
+  Pick<FormState, "houseSlug" | "checkIn" | "checkOut" | "adults" | "children">
+>;
 
 type FormErrors = Partial<Record<keyof FormState | "guests" | "calendar", string>>;
+
+function formatNightCount(count: number) {
+  return `${count} noite${count === 1 ? "" : "s"}`;
+}
+
+function getStayRuleLabel(house?: BookingHouseOption) {
+  if (!house) return "";
+  if (house.maxNights && house.minNights === house.maxNights) {
+    return `Regra da casa: ${formatNightCount(house.minNights)}.`;
+  }
+  if (house.maxNights) {
+    return `Regra da casa: ${formatNightCount(house.minNights)} a ${formatNightCount(house.maxNights)}.`;
+  }
+  return `Regra da casa: mínimo de ${formatNightCount(house.minNights)}.`;
+}
+
+function getStayRuleError(house: BookingHouseOption | undefined, nights: number) {
+  if (!house || !nights) return undefined;
+  if (nights < house.minNights) {
+    return `A ${house.name} exige no mínimo ${formatNightCount(house.minNights)}.`;
+  }
+  if (house.maxNights && nights > house.maxNights) {
+    return `A ${house.name} permite até ${formatNightCount(house.maxNights)} por consulta online.`;
+  }
+  return undefined;
+}
+
+function getGuestRuleError(house: BookingHouseOption | undefined, totalGuests: number) {
+  if (!house?.guests || totalGuests <= house.guests) return undefined;
+  return `A ${house.name} recebe até ${house.guests} hóspedes.`;
+}
+
+function normalizeGuestCountsForHouse(
+  adults: number,
+  children: number,
+  house?: BookingHouseOption,
+) {
+  const safeAdults = Math.max(1, Math.trunc(adults) || 1);
+  const safeChildren = Math.max(0, Math.trunc(children) || 0);
+
+  if (!house?.guests) {
+    return { adults: safeAdults, children: safeChildren };
+  }
+
+  const cappedAdults = Math.min(safeAdults, house.guests);
+  return {
+    adults: cappedAdults,
+    children: Math.min(safeChildren, Math.max(0, house.guests - cappedAdults)),
+  };
+}
 
 export function AvailabilityForm({
   selectedHouseSlug,
@@ -102,20 +151,27 @@ export function AvailabilityForm({
         detail.houseSlug && houses.some((house) => house.slug === detail.houseSlug)
           ? detail.houseSlug
           : undefined;
-      setForm((current) => ({
-        ...current,
-        houseSlug: validHouseSlug || current.houseSlug,
-        checkIn: detail.checkIn || current.checkIn,
-        checkOut: detail.checkOut || current.checkOut,
-        adults:
+      setForm((current) => {
+        const nextHouseSlug = validHouseSlug || current.houseSlug;
+        const nextHouse = houses.find((house) => house.slug === nextHouseSlug);
+        const guests = normalizeGuestCountsForHouse(
           typeof detail.adults === "number" && Number.isFinite(detail.adults)
             ? detail.adults
             : current.adults,
-        children:
           typeof detail.children === "number" && Number.isFinite(detail.children)
             ? detail.children
             : current.children,
-      }));
+          nextHouse,
+        );
+
+        return {
+          ...current,
+          ...guests,
+          houseSlug: nextHouseSlug,
+          checkIn: detail.checkIn || current.checkIn,
+          checkOut: detail.checkOut || current.checkOut,
+        };
+      });
     }
 
     const params = new URLSearchParams(window.location.search);
@@ -155,18 +211,30 @@ export function AvailabilityForm({
   const isHorizontal = layout === "horizontal";
   const today = getTodayISO();
   const nights = calculateNights(form.checkIn, form.checkOut);
+  const totalGuests = form.adults + form.children;
   const hasValidRange = Boolean(
     form.checkIn &&
-      form.checkOut &&
-      isISODate(form.checkIn) &&
-      isISODate(form.checkOut) &&
-      compareISODate(form.checkOut, form.checkIn) > 0,
+    form.checkOut &&
+    isISODate(form.checkIn) &&
+    isISODate(form.checkOut) &&
+    compareISODate(form.checkOut, form.checkIn) > 0,
   );
   const hasAvailabilityConflict = Boolean(
     hasValidRange &&
-      !isRangeAvailableFromRanges(form.checkIn, form.checkOut, unavailableRanges),
+    !isRangeAvailableFromRanges(form.checkIn, form.checkOut, unavailableRanges),
   );
-  const canContinueToContact = Boolean(selectedHouse && hasValidRange && !hasAvailabilityConflict);
+  const stayRuleLabel = getStayRuleLabel(selectedHouse);
+  const stayRuleError = hasValidRange ? getStayRuleError(selectedHouse, nights) : undefined;
+  const guestRuleError = getGuestRuleError(selectedHouse, totalGuests);
+  const canContinueToContact = Boolean(
+    selectedHouse &&
+    hasValidRange &&
+    !hasAvailabilityConflict &&
+    !stayRuleError &&
+    !guestRuleError &&
+    form.adults >= 1 &&
+    form.children >= 0,
+  );
 
   useEffect(() => {
     if (!hasValidRange || !selectedHouse) return;
@@ -188,8 +256,10 @@ export function AvailabilityForm({
 
   function updateHouseSlug(value: string) {
     trackEvent("select_house", { houseSlug: value });
+    const nextHouse = houses.find((house) => house.slug === value);
     setForm((current) => ({
       ...current,
+      ...normalizeGuestCountsForHouse(current.adults, current.children, nextHouse),
       houseSlug: value,
       checkIn: "",
       checkOut: "",
@@ -198,7 +268,24 @@ export function AvailabilityForm({
   }
 
   function updateGuests(field: "adults" | "children", value: number) {
-    updateField(field, Number.isFinite(value) ? value : 0);
+    const baseValue = Number.isFinite(value) ? Math.trunc(value) : 0;
+
+    setForm((current) => {
+      const guests = normalizeGuestCountsForHouse(
+        field === "adults" ? baseValue : current.adults,
+        field === "children" ? baseValue : current.children,
+        selectedHouse,
+      );
+      return {
+        ...current,
+        ...guests,
+      };
+    });
+    setErrors((current) => ({
+      ...current,
+      [field]: undefined,
+      guests: undefined,
+    }));
   }
 
   function updateResponsibleField(
@@ -228,10 +315,18 @@ export function AvailabilityForm({
     if (form.checkOut && !isISODate(form.checkOut)) {
       nextErrors.checkOut = "Selecione uma data de saída válida.";
     }
-    if (form.checkIn && isISODate(form.checkIn) && compareISODate(form.checkIn, today) < 0) {
+    if (
+      form.checkIn &&
+      isISODate(form.checkIn) &&
+      compareISODate(form.checkIn, today) < 0
+    ) {
       nextErrors.checkIn = "A entrada não pode ser uma data passada.";
     }
-    if (form.checkOut && isISODate(form.checkOut) && compareISODate(form.checkOut, today) < 0) {
+    if (
+      form.checkOut &&
+      isISODate(form.checkOut) &&
+      compareISODate(form.checkOut, today) < 0
+    ) {
       nextErrors.checkOut = "A saída não pode ser uma data passada.";
     }
     if (
@@ -252,8 +347,12 @@ export function AvailabilityForm({
     ) {
       nextErrors.calendar = "Esse intervalo atravessa uma data indisponível.";
     }
+    const stayError = getStayRuleError(selectedHouse, nights);
+    if (stayError) nextErrors.calendar = stayError;
     if (form.adults < 1) nextErrors.adults = "Informe pelo menos 1 adulto.";
     if (form.children < 0) nextErrors.children = "Informe uma quantidade válida.";
+    const guestError = getGuestRuleError(selectedHouse, totalGuests);
+    if (guestError) nextErrors.guests = guestError;
     if (form.responsibleName.trim().split(/\s+/).length < 2) {
       nextErrors.responsibleName = "Informe seu nome completo.";
     }
@@ -334,7 +433,11 @@ export function AvailabilityForm({
           <label className="text-sm font-semibold text-[var(--color-ink)]">
             Casa
             <span className="mt-1.5 flex min-h-11 items-center gap-2 border border-[var(--color-line)] bg-[var(--color-shell)] px-3">
-              <Home aria-hidden="true" className="shrink-0 text-[var(--color-copper)]" size={16} />
+              <Home
+                aria-hidden="true"
+                className="shrink-0 text-[var(--color-copper)]"
+                size={16}
+              />
               <select
                 className="h-10 w-full bg-transparent text-sm text-[var(--color-ink)] outline-none"
                 value={form.houseSlug}
@@ -360,6 +463,9 @@ export function AvailabilityForm({
             unavailableRanges={unavailableRanges}
             checkIn={form.checkIn}
             checkOut={form.checkOut}
+            minNights={selectedHouse?.minNights ?? null}
+            maxNights={selectedHouse?.maxNights ?? null}
+            stayRuleLabel={stayRuleLabel}
             onChange={(range) => {
               if (range.checkIn && !form.checkIn) {
                 trackEvent("select_checkin", { houseSlug: form.houseSlug });
@@ -370,7 +476,15 @@ export function AvailabilityForm({
               updateField("checkIn", range.checkIn);
               updateField("checkOut", range.checkOut);
             }}
-            error={errors.calendar || errors.checkIn || errors.checkOut}
+            onInvalidStay={(invalidNights) => {
+              setErrors((current) => ({
+                ...current,
+                calendar:
+                  getStayRuleError(selectedHouse, invalidNights) ||
+                  `Selecione um período compatível com ${selectedHouse?.name || "a casa"}.`,
+              }));
+            }}
+            error={errors.calendar || errors.checkIn || errors.checkOut || stayRuleError}
           />
 
           <BookingSelectionSummary
@@ -382,6 +496,8 @@ export function AvailabilityForm({
             childGuests={form.children}
             hasValidRange={hasValidRange}
             hasAvailabilityConflict={hasAvailabilityConflict}
+            stayRuleLabel={stayRuleLabel}
+            stayRuleError={stayRuleError}
           />
 
           {selectedHouse ? <SelectedHouseSummary house={selectedHouse} /> : null}
@@ -391,11 +507,11 @@ export function AvailabilityForm({
           <GuestSelector
             adults={form.adults}
             childGuests={form.children}
-            maxGuests={null}
+            maxGuests={selectedHouse?.guests ?? null}
             errors={{
               adults: errors.adults,
               children: errors.children,
-              guests: errors.guests,
+              guests: errors.guests || guestRuleError,
             }}
             inputClassName={inputClass}
             onChange={updateGuests}
@@ -422,11 +538,16 @@ export function AvailabilityForm({
           ) : (
             <div className="border border-[var(--color-line)] bg-white/55 p-4">
               <p className="flex gap-2 text-sm font-semibold text-[var(--color-ink)]">
-                <ShieldCheck aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--color-ocean)]" size={17} />
+                <ShieldCheck
+                  aria-hidden="true"
+                  className="mt-0.5 shrink-0 text-[var(--color-ocean)]"
+                  size={17}
+                />
                 Selecione um período válido para continuar.
               </p>
               <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                Primeiro confirme casa, entrada, saída e hóspedes. Depois pedimos apenas os dados necessários para iniciar a conversa no WhatsApp.
+                Primeiro confirme casa, entrada, saída e hóspedes. Depois pedimos apenas os
+                dados necessários para iniciar a conversa no WhatsApp.
               </p>
             </div>
           )}
@@ -454,6 +575,8 @@ function BookingSelectionSummary({
   childGuests,
   hasValidRange,
   hasAvailabilityConflict,
+  stayRuleLabel,
+  stayRuleError,
 }: {
   houseName?: string;
   checkIn: string;
@@ -463,8 +586,15 @@ function BookingSelectionSummary({
   childGuests: number;
   hasValidRange: boolean;
   hasAvailabilityConflict: boolean;
+  stayRuleLabel: string;
+  stayRuleError?: string;
 }) {
   const totalGuests = adults + childGuests;
+  const statusError =
+    stayRuleError ||
+    (hasAvailabilityConflict
+      ? "Uma ou mais datas deste período estão indisponíveis. Escolha outro período."
+      : undefined);
 
   return (
     <div className="border border-[var(--color-line)] bg-white/50 p-4">
@@ -483,6 +613,13 @@ function BookingSelectionSummary({
           value={nights ? `${nights} noite${nights === 1 ? "" : "s"}` : "Aguardando datas"}
         />
         <SummaryItem
+          label="Regra"
+          value={
+            stayRuleLabel.replace("Regra da casa: ", "").replace(".", "") ||
+            "Conforme a casa"
+          }
+        />
+        <SummaryItem
           label="Hóspedes"
           value={`${totalGuests} hóspede${totalGuests === 1 ? "" : "s"}`}
         />
@@ -490,18 +627,16 @@ function BookingSelectionSummary({
       {hasValidRange ? (
         <p
           className={`mt-4 flex gap-2 text-sm font-semibold ${
-            hasAvailabilityConflict ? "text-red-700" : "text-[var(--color-ocean-strong)]"
+            statusError ? "text-red-700" : "text-[var(--color-ocean-strong)]"
           }`}
           aria-live="polite"
         >
-          {hasAvailabilityConflict ? (
+          {statusError ? (
             <AlertCircle aria-hidden="true" className="mt-0.5 shrink-0" size={17} />
           ) : (
             <CheckCircle2 aria-hidden="true" className="mt-0.5 shrink-0" size={17} />
           )}
-          {hasAvailabilityConflict
-            ? "Uma ou mais datas deste período estão indisponíveis. Escolha outro período."
-            : "Período disponível para consulta."}
+          {statusError || "Período disponível para consulta."}
         </p>
       ) : null}
     </div>
@@ -523,6 +658,10 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
 
 function SelectedHouseSummary({ house }: { house: BookingHouseOption }) {
   const facts = [
+    {
+      label: getStayRuleLabel(house).replace("Regra da casa: ", "").replace(".", ""),
+      icon: CalendarDays,
+    },
     {
       label: house.guests ? `Até ${house.guests} hóspedes` : "Capacidade a confirmar",
       icon: Users,
@@ -567,14 +706,22 @@ function SelectedHouseSummary({ house }: { house: BookingHouseOption }) {
             key={label}
             className="inline-flex min-h-8 items-center gap-2 text-sm font-medium text-[var(--color-ink)]"
           >
-            <Icon aria-hidden="true" className="shrink-0 text-[var(--color-copper)]" size={16} />
+            <Icon
+              aria-hidden="true"
+              className="shrink-0 text-[var(--color-copper)]"
+              size={16}
+            />
             {label}
           </span>
         ))}
       </div>
 
       <div className="mt-3 flex items-start gap-2 border-t border-[var(--color-line)] pt-3 text-sm text-[var(--color-muted)]">
-        <MapPin aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--color-ocean-strong)]" size={16} />
+        <MapPin
+          aria-hidden="true"
+          className="mt-0.5 shrink-0 text-[var(--color-ocean-strong)]"
+          size={16}
+        />
         <span>{house.locationLabel}</span>
       </div>
 
@@ -585,7 +732,11 @@ function SelectedHouseSummary({ house }: { house: BookingHouseOption }) {
               key={highlight}
               className="inline-flex items-center gap-1.5 bg-[var(--color-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--color-ink)]"
             >
-              <Sparkles aria-hidden="true" size={13} className="text-[var(--color-copper)]" />
+              <Sparkles
+                aria-hidden="true"
+                size={13}
+                className="text-[var(--color-copper)]"
+              />
               {highlight}
             </span>
           ))}

@@ -15,7 +15,7 @@ const trustItems = [
   },
   {
     title: "Informações antes da decisão",
-    description: "Capacidade, regras, valores e endereço são confirmados antes da pré-reserva.",
+    description: "Regras, valores e endereço exato são confirmados antes da pré-reserva.",
     icon: ShieldCheck,
   },
   {

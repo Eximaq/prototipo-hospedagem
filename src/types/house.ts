@@ -45,6 +45,8 @@ export type House = {
   location: HouseLocation;
   hero: HouseHero;
   guests: number | null;
+  minNights: number;
+  maxNights?: number | null;
   suites: number;
   bedrooms: number;
   beds: number;

@@ -1,10 +1,10 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { CalendarDays, Home, Search, Users, type LucideIcon } from "lucide-react";
 import type { BookingHouseOption } from "@/components/booking/availability-form";
-import { getTodayISO } from "@/lib/availability/date-utils";
+import { addDays, calculateNights, getTodayISO } from "@/lib/availability/date-utils";
 import { trackEvent } from "@/lib/analytics";
 
 type QuickAvailabilityBarProps = {
@@ -17,6 +17,47 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(2);
+  const selectedHouse = useMemo(
+    () => houses.find((house) => house.slug === houseSlug),
+    [houseSlug, houses],
+  );
+  const minCheckOut = checkIn ? addDays(checkIn, selectedHouse?.minNights ?? 1) : today;
+  const maxCheckOut =
+    checkIn && selectedHouse?.maxNights
+      ? addDays(checkIn, selectedHouse.maxNights)
+      : undefined;
+
+  function hasInvalidStay(
+    nextCheckIn: string,
+    nextCheckOut: string,
+    house = selectedHouse,
+  ) {
+    if (!nextCheckIn || !nextCheckOut || !house) return false;
+    const nights = calculateNights(nextCheckIn, nextCheckOut);
+    return Boolean(
+      nights && (nights < house.minNights || (house.maxNights && nights > house.maxNights)),
+    );
+  }
+
+  function updateHouseSlug(value: string) {
+    const nextHouse = houses.find((house) => house.slug === value);
+    setHouseSlug(value);
+    if (nextHouse?.guests)
+      setGuests((current) => Math.min(current, nextHouse.guests || current));
+    if (nextHouse && hasInvalidStay(checkIn, checkOut, nextHouse)) setCheckOut("");
+  }
+
+  function updateCheckIn(value: string) {
+    setCheckIn(value);
+    if (hasInvalidStay(value, checkOut)) setCheckOut("");
+  }
+
+  function updateGuests(value: number) {
+    const safeValue = Math.max(1, Math.trunc(value) || 1);
+    setGuests(
+      selectedHouse?.guests ? Math.min(safeValue, selectedHouse.guests) : safeValue,
+    );
+  }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,7 +98,7 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
       <QuickField label="Casa" icon={Home}>
         <select
           value={houseSlug}
-          onChange={(event) => setHouseSlug(event.target.value)}
+          onChange={(event) => updateHouseSlug(event.target.value)}
           className="w-full bg-transparent text-sm font-semibold outline-none"
           aria-label="Escolher casa"
         >
@@ -74,7 +115,7 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
           type="date"
           min={today}
           value={checkIn}
-          onChange={(event) => setCheckIn(event.target.value)}
+          onChange={(event) => updateCheckIn(event.target.value)}
           className="w-full bg-transparent text-sm font-semibold outline-none"
           aria-label="Data de check-in"
         />
@@ -83,7 +124,8 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
       <QuickField label="Check-out" icon={CalendarDays}>
         <input
           type="date"
-          min={checkIn || today}
+          min={minCheckOut}
+          max={maxCheckOut}
           value={checkOut}
           onChange={(event) => setCheckOut(event.target.value)}
           className="w-full bg-transparent text-sm font-semibold outline-none"
@@ -95,8 +137,9 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
         <input
           type="number"
           min={1}
+          max={selectedHouse?.guests ?? undefined}
           value={guests}
-          onChange={(event) => setGuests(Number(event.target.value) || 1)}
+          onChange={(event) => updateGuests(Number(event.target.value))}
           className="w-full bg-transparent text-sm font-semibold outline-none"
           aria-label="Quantidade de hóspedes"
         />
@@ -124,7 +167,11 @@ function QuickField({
 }) {
   return (
     <label className="flex min-h-14 items-center gap-3 border border-[var(--color-line)] bg-white px-3">
-      <Icon aria-hidden="true" className="shrink-0 text-[var(--color-ocean-strong)]" size={17} />
+      <Icon
+        aria-hidden="true"
+        className="shrink-0 text-[var(--color-ocean-strong)]"
+        size={17}
+      />
       <span className="min-w-0 flex-1">
         <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-[var(--color-muted)]">
           {label}

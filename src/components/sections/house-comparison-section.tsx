@@ -12,16 +12,50 @@ export function HouseComparisonSection() {
     },
     { label: "Suítes", getValue: (house: (typeof houses)[number]) => `${house.suites}` },
     { label: "Quartos", getValue: (house: (typeof houses)[number]) => `${house.bedrooms}` },
-    { label: "Banheiros", getValue: (house: (typeof houses)[number]) => `${house.bathrooms}` },
-    { label: "Piscina", getValue: (house: (typeof houses)[number]) => (house.pool ? "Sim" : "Não informado") },
     {
-      label: "Churrasqueira",
-      getValue: (house: (typeof houses)[number]) => (house.barbecue ? "Sim" : "Não informado"),
+      label: "Banheiros",
+      getValue: (house: (typeof houses)[number]) => `${house.bathrooms}`,
     },
     {
-      label: "Estacionamento",
+      label: "Piscina",
+      getValue: (house: (typeof houses)[number]) => (house.pool ? "Sim" : "Não informado"),
+    },
+    {
+      label: "Churrasqueira",
       getValue: (house: (typeof houses)[number]) =>
-        house.amenities.includes("Estacionamento") ? "Sim" : "Não informado",
+        house.barbecue ? "Sim" : "Não informado",
+    },
+    {
+      label: "Praia",
+      getValue: (house: (typeof houses)[number]) =>
+        house.location.distances?.find((distance) => distance.label === "Praia")?.value ||
+        "Não informado",
+    },
+    {
+      label: "Noites mínimas",
+      getValue: (house: (typeof houses)[number]) =>
+        house.policies.find((policy) => policy.label === "Noites mínimas")?.value ||
+        "Não informado",
+    },
+    {
+      label: "Noites máximas",
+      getValue: (house: (typeof houses)[number]) =>
+        house.policies.find((policy) => policy.label === "Noites máximas")?.value ||
+        "Não informado",
+    },
+    {
+      label: "Apoio na cozinha",
+      getValue: (house: (typeof houses)[number]) =>
+        house.amenities.some((amenity) => amenity.toLowerCase().includes("funcion"))
+          ? "Sim"
+          : "Não informado",
+    },
+    {
+      label: "Segurança 24h",
+      getValue: (house: (typeof houses)[number]) =>
+        house.amenities.some((amenity) => amenity.toLowerCase().includes("segurança 24h"))
+          ? "Sim"
+          : "Não informado",
     },
   ];
 
@@ -36,7 +70,8 @@ export function HouseComparisonSection() {
             compact
           />
           <p className="text-sm leading-6 text-[var(--color-muted)]">
-            A capacidade final é confirmada no atendimento antes da pré-reserva. As demais informações ajudam a comparar estrutura e perfil de estadia.
+            Casa Turquesa recebe até 14 pessoas. Casa Corais Milagres recebe até 8 pessoas e
+            oferece estrutura de condomínio com lazer.
           </p>
         </div>
 
@@ -60,7 +95,8 @@ export function HouseComparisonSection() {
                 {rows.map((row) => {
                   const value = row.getValue(house);
                   const positive = value === "Sim";
-                  const neutral = value.includes("confirmar") || value.includes("Não informado");
+                  const neutral =
+                    value.includes("confirmar") || value.includes("Não informado");
 
                   return (
                     <div key={row.label} className="grid grid-cols-[0.58fr_1fr] gap-3 py-3">
@@ -69,9 +105,17 @@ export function HouseComparisonSection() {
                       </dt>
                       <dd className="flex items-center gap-2 text-sm font-semibold text-[var(--color-ink)]">
                         {positive ? (
-                          <Check aria-hidden="true" className="text-[var(--color-ocean)]" size={16} />
+                          <Check
+                            aria-hidden="true"
+                            className="text-[var(--color-ocean)]"
+                            size={16}
+                          />
                         ) : neutral ? (
-                          <Minus aria-hidden="true" className="text-[var(--color-muted)]" size={16} />
+                          <Minus
+                            aria-hidden="true"
+                            className="text-[var(--color-muted)]"
+                            size={16}
+                          />
                         ) : null}
                         {value}
                       </dd>

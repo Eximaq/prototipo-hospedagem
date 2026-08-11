@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { AvailabilityLegend } from "@/components/availability/availability-legend";
 import {
   addDays,
+  calculateNights,
   compareISODate,
   formatDateForDisplay,
   getMonthFromISO,
@@ -27,7 +28,10 @@ type AvailabilityCalendarProps = {
   onChange: (range: { checkIn: string; checkOut: string }) => void;
   error?: string;
   minDate?: string;
+  minNights?: number | null;
+  maxNights?: number | null;
   monthsToShow?: 1 | 2;
+  onInvalidStay?: (nights: number) => void;
 };
 
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -48,7 +52,10 @@ export function AvailabilityCalendar({
   onChange,
   error,
   minDate = getTodayISO(),
+  minNights,
+  maxNights,
   monthsToShow = 1,
+  onInvalidStay,
 }: AvailabilityCalendarProps) {
   const initialMonth = useMemo(
     () => getMonthFromISO(checkIn || minDate),
@@ -87,10 +94,13 @@ export function AvailabilityCalendar({
       monthsToShow - 1,
     );
     const isOutsideVisibleMonths =
-      compareISODate(nextDate, `${visibleMonth.year}-${String(visibleMonth.monthIndex + 1).padStart(2, "0")}-01`) < 0 ||
-      (nextMonth.year > visibleEndMonth.year ||
-        (nextMonth.year === visibleEndMonth.year &&
-          nextMonth.monthIndex > visibleEndMonth.monthIndex));
+      compareISODate(
+        nextDate,
+        `${visibleMonth.year}-${String(visibleMonth.monthIndex + 1).padStart(2, "0")}-01`,
+      ) < 0 ||
+      nextMonth.year > visibleEndMonth.year ||
+      (nextMonth.year === visibleEndMonth.year &&
+        nextMonth.monthIndex > visibleEndMonth.monthIndex);
 
     if (isOutsideVisibleMonths) setVisibleMonth(nextMonth);
     focusDate(nextDate);
@@ -102,6 +112,15 @@ export function AvailabilityCalendar({
 
     if (!checkIn || checkOut || compareISODate(date, checkIn) <= 0) {
       onChange({ checkIn: date, checkOut: "" });
+      return;
+    }
+
+    const candidateNights = calculateNights(checkIn, date);
+    const tooShort = Boolean(minNights && candidateNights < minNights);
+    const tooLong = Boolean(maxNights && candidateNights > maxNights);
+
+    if (tooShort || tooLong) {
+      onInvalidStay?.(candidateNights);
       return;
     }
 
@@ -170,7 +189,9 @@ export function AvailabilityCalendar({
       <div className="mt-4 flex flex-col gap-3 border-t border-[var(--color-line)] pt-3 sm:flex-row sm:items-center sm:justify-between">
         <AvailabilityLegend showUnavailable={hasUnavailableRanges} />
         <p className="text-xs font-medium text-[var(--color-muted)]">
-          {checkIn ? `Entrada: ${formatDateForDisplay(checkIn)}` : "Entrada não selecionada"}
+          {checkIn
+            ? `Entrada: ${formatDateForDisplay(checkIn)}`
+            : "Entrada não selecionada"}
           {" · "}
           {checkOut ? `Saída: ${formatDateForDisplay(checkOut)}` : "Saída não selecionada"}
         </p>
@@ -280,9 +301,11 @@ function DayButton({
       aria-label={label}
       className={cn(
         "aspect-square min-h-8 border text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-gold)] sm:min-h-9 sm:text-sm",
-        disabled && "cursor-not-allowed border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] opacity-55",
+        disabled &&
+          "cursor-not-allowed border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] opacity-55",
         unavailable && "line-through decoration-[var(--color-copper)] decoration-2",
-        !disabled && "border-[var(--color-line)] bg-white text-[var(--color-ink)] hover:border-[var(--color-copper)] hover:bg-[var(--color-soft)]",
+        !disabled &&
+          "border-[var(--color-line)] bg-white text-[var(--color-ink)] hover:border-[var(--color-copper)] hover:bg-[var(--color-soft)]",
         inRange && !disabled && "border-[var(--color-ocean)] bg-[var(--color-ocean)]/10",
         (selectedStart || selectedEnd) &&
           "border-[var(--color-ocean-strong)] bg-[var(--color-ocean-strong)] text-white hover:bg-[var(--color-ocean-strong)]",
