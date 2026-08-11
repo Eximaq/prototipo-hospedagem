@@ -40,10 +40,12 @@ export function PremiumHero() {
             São Miguel dos Milagres, AL
           </p>
           <h1 className="font-serif text-3xl leading-[1.08] text-white sm:text-4xl md:text-5xl lg:text-[3.65rem]">
-            Privacidade, conforto e dias tranquilos em São Miguel dos Milagres.
+            Duas casas. Um só destino. Experiências inesquecíveis à beira-mar em São Miguel
+            dos Milagres.
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-white/78 md:text-lg">
-            Duas casas para temporada com piscina, suítes, Wi-Fi e atendimento direto para planejar sua estadia em Milagres.
+            Duas casas para temporada com piscina, suítes, Wi-Fi e atendimento direto para
+            planejar sua estadia em Milagres.
           </p>
           <div className="mt-7 flex flex-col justify-center gap-2 sm:flex-row">
             <Link
@@ -63,7 +65,6 @@ export function PremiumHero() {
           </div>
           <QuickAvailabilityBar houses={bookingHouses} />
         </div>
-
       </div>
     </section>
   );
