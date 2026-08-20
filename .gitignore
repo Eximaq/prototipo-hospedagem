@@ -33,6 +33,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+# `.env.local` remains private; `.env.example` is the only committed exception.
 
 # vercel
 .vercel
@@ -41,6 +42,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local assistant/editor files
-AGENTS.md
-CLAUDE.md
+# Legacy presentation prototype kept only in the local workspace
+/apresentacao-cliente/
+
+# Private development snapshots. Only normalized availability is committed.
+/calendar-fixtures/*.ics

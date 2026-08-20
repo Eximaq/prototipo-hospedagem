@@ -32,6 +32,7 @@ type AvailabilityCalendarProps = {
   maxNights?: number | null;
   monthsToShow?: 1 | 2;
   onInvalidStay?: (nights: number) => void;
+  onUnavailableRange?: () => void;
 };
 
 const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -56,6 +57,7 @@ export function AvailabilityCalendar({
   maxNights,
   monthsToShow = 1,
   onInvalidStay,
+  onUnavailableRange,
 }: AvailabilityCalendarProps) {
   const initialMonth = useMemo(
     () => getMonthFromISO(checkIn || minDate),
@@ -130,6 +132,7 @@ export function AvailabilityCalendar({
     }
 
     onChange({ checkIn: date, checkOut: "" });
+    onUnavailableRange?.();
   }
 
   const months = Array.from({ length: monthsToShow }, (_, index) =>
@@ -305,6 +308,9 @@ function DayButton({
           "cursor-not-allowed border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] opacity-55",
         unavailable && "line-through decoration-[var(--color-copper)] decoration-2",
         !disabled &&
+          !inRange &&
+          !selectedStart &&
+          !selectedEnd &&
           "border-[var(--color-line)] bg-white text-[var(--color-ink)] hover:border-[var(--color-copper)] hover:bg-[var(--color-soft)]",
         inRange && !disabled && "border-[var(--color-ocean)] bg-[var(--color-ocean)]/10",
         (selectedStart || selectedEnd) &&

@@ -1,0 +1,67 @@
+name: Sincronizar disponibilidade e publicar
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Uma vez por hora, em minuto deslocado para evitar o pico do início da hora.
+    - cron: "17 * * * *"
+
+concurrency:
+  group: github-pages-availability
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CASA_TURQUESA_ICAL_URL: ${{ secrets.CASA_TURQUESA_ICAL_URL }}
+      CASA_CORAIS_ICAL_URL: ${{ secrets.CASA_CORAIS_ICAL_URL }}
+      NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+      NEXT_PUBLIC_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Executar testes
+        run: npm test
+
+      - name: Sincronizar calendários privados
+        run: npm run availability:sync
+
+      - name: Gerar site estático
+        run: npm run build
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Enviar artefato estático
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

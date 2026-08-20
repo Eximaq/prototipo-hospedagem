@@ -484,6 +484,12 @@ export function AvailabilityForm({
                   `Selecione um período compatível com ${selectedHouse?.name || "a casa"}.`,
               }));
             }}
+            onUnavailableRange={() => {
+              setErrors((current) => ({
+                ...current,
+                calendar: "Período indisponível. Escolha outras datas.",
+              }));
+            }}
             error={errors.calendar || errors.checkIn || errors.checkOut || stayRuleError}
           />
 
@@ -589,7 +595,6 @@ function BookingSelectionSummary({
   stayRuleLabel: string;
   stayRuleError?: string;
 }) {
-  const totalGuests = adults + childGuests;
   const statusError =
     stayRuleError ||
     (hasAvailabilityConflict
@@ -620,8 +625,12 @@ function BookingSelectionSummary({
           }
         />
         <SummaryItem
-          label="Hóspedes"
-          value={`${totalGuests} hóspede${totalGuests === 1 ? "" : "s"}`}
+          label="Adultos"
+          value={`${adults} adulto${adults === 1 ? "" : "s"}`}
+        />
+        <SummaryItem
+          label="Crianças"
+          value={`${childGuests} criança${childGuests === 1 ? "" : "s"}`}
         />
       </div>
       {hasValidRange ? (
@@ -637,6 +646,11 @@ function BookingSelectionSummary({
             <CheckCircle2 aria-hidden="true" className="mt-0.5 shrink-0" size={17} />
           )}
           {statusError || "Período disponível para consulta."}
+        </p>
+      ) : null}
+      {hasValidRange && !statusError ? (
+        <p className="mt-1 text-xs leading-5 text-[var(--color-muted)]">
+          Disponibilidade sujeita à confirmação pelo atendimento.
         </p>
       ) : null}
     </div>

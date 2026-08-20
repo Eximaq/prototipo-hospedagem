@@ -73,6 +73,13 @@ export function mergeAvailabilitySources(
       startDate: reservation.startDate,
       endDate: reservation.endDate,
     }))
+  return mergeUnavailableRanges(ranges);
+}
+
+export function mergeUnavailableRanges(ranges: AvailabilityRange[]) {
+  const sortedRanges = ranges
+    .filter((range) => isValidDateRange(range.startDate, range.endDate))
+    .map((range) => ({ ...range }))
     .sort((a, b) => {
       const startOrder = compareISODate(a.startDate, b.startDate);
       if (startOrder !== 0) return startOrder;
@@ -81,7 +88,7 @@ export function mergeAvailabilitySources(
 
   const merged: AvailabilityRange[] = [];
 
-  for (const range of ranges) {
+  for (const range of sortedRanges) {
     const current = merged.at(-1);
     if (!current) {
       merged.push({ ...range });

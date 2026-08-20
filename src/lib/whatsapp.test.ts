@@ -15,12 +15,17 @@ describe("WhatsApp inquiry", () => {
       notes: "Gostaria de consultar valores.",
     });
 
-    expect(message).toContain("HOSPEDAGEM");
-    expect(message).toContain("Casa: Casa Turquesa");
-    expect(message).toContain("Entrada: 20/09/2026");
-    expect(message).toContain("Estadia: 4 noites");
+    expect(message).toContain("🏡 Casa: Casa Turquesa");
+    expect(message).toContain("📅 Entrada: 20/09/2026");
+    expect(message).toContain("📅 Saída: 24/09/2026");
+    expect(message).toContain("🌙 Estadia: 4 noites");
+    expect(message).toContain("👥 Adultos: 4");
+    expect(message).toContain("👶 Crianças: 2");
     expect(message).toContain("RESPONSÁVEL");
     expect(message).toContain("CPF: 529.982.247-25");
+    expect(message).toContain(
+      "Gostaria de confirmar disponibilidade e receber informações sobre valores.",
+    );
   });
 
   it("omits empty optional fields", () => {
@@ -31,7 +36,7 @@ describe("WhatsApp inquiry", () => {
       adults: 2,
     });
 
-    expect(message).toContain("Estadia: 4 noites");
+    expect(message).toContain("🌙 Estadia: 4 noites");
     expect(message).not.toContain("CPF:");
     expect(message).not.toContain("Nascimento:");
     expect(message).not.toContain("Não informado");
@@ -48,6 +53,6 @@ describe("WhatsApp inquiry", () => {
     });
 
     expect(url).toMatch(/^https:\/\/wa\.me\/5582993563898\?text=/);
-    expect(decodeURIComponent(url)).toContain("Casa: Casa Corais Milagres");
+    expect(decodeURIComponent(url)).toContain("🏡 Casa: Casa Corais Milagres");
   });
 });

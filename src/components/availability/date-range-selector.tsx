@@ -17,6 +17,7 @@ type DateRangeSelectorProps = {
   stayRuleLabel?: string;
   onChange: (range: { checkIn: string; checkOut: string }) => void;
   onInvalidStay?: (nights: number) => void;
+  onUnavailableRange?: () => void;
   error?: string;
 };
 
@@ -29,6 +30,7 @@ export function DateRangeSelector({
   stayRuleLabel,
   onChange,
   onInvalidStay,
+  onUnavailableRange,
   error,
 }: DateRangeSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -142,6 +144,7 @@ export function DateRangeSelector({
             minNights={minNights}
             maxNights={maxNights}
             onInvalidStay={onInvalidStay}
+            onUnavailableRange={onUnavailableRange}
             monthsToShow={2}
           />
         </div>

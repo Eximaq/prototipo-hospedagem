@@ -6,26 +6,28 @@ import {
   isDateUnavailableFromRanges,
   isRangeAvailableFromRanges,
   mergeAvailabilitySources,
+  mergeUnavailableRanges,
 } from "@/lib/availability/merge";
 import type {
   AvailabilityRange,
+  GeneratedAvailabilitySnapshot,
   PublicHouseAvailability,
-  Reservation,
 } from "@/lib/availability/types";
 
-type GeneratedAvailability = {
-  generatedAt: string | null;
-  reservations: Reservation[];
-};
-
-const generated = generatedAvailability as GeneratedAvailability;
+const generated = generatedAvailability as GeneratedAvailabilitySnapshot;
 
 export function getAllReservations() {
-  return [...localReservations, ...generated.reservations];
+  return [...localReservations];
 }
 
 export function getUnavailableRanges(houseId: string) {
-  return mergeAvailabilitySources(getAllReservations(), { houseId });
+  const generatedRanges = generated.houses[houseId]?.unavailableRanges.map((range) => ({
+    startDate: range.start,
+    endDate: range.end,
+  })) || [];
+  const localRanges = mergeAvailabilitySources(getAllReservations(), { houseId });
+
+  return mergeUnavailableRanges([...generatedRanges, ...localRanges]);
 }
 
 export function getHouseAvailability(houseId: string): PublicHouseAvailability {
@@ -86,6 +88,7 @@ export {
   isDateUnavailableFromRanges,
   isRangeAvailableFromRanges,
   mergeAvailabilitySources,
+  mergeUnavailableRanges,
   reservationBlocksAvailability,
 } from "@/lib/availability/merge";
 
@@ -105,13 +108,3 @@ export {
   normalizeReservation,
   normalizeReservations,
 } from "@/lib/availability/normalize";
-
-export {
-  ICalAvailabilityProvider,
-  parseICalendar,
-} from "@/lib/availability/providers/ical-provider";
-export { AirbnbAvailabilityProvider } from "@/lib/availability/providers/airbnb-provider";
-export { BookingAvailabilityProvider } from "@/lib/availability/providers/booking-provider";
-export { VrboAvailabilityProvider } from "@/lib/availability/providers/vrbo-provider";
-export { GoogleCalendarAvailabilityProvider } from "@/lib/availability/providers/google-calendar-provider";
-export { LocalAvailabilityProvider } from "@/lib/availability/providers/local-provider";

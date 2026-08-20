@@ -45,68 +45,65 @@ Uma consulta vira bloqueio somente quando:
 - uma reserva direta for confirmada no futuro painel;
 - uma reserva vier de Airbnb, Booking, Vrbo, Google Calendar ou outro iCal.
 
-## Configurar Airbnb
+## Atualizar os Arquivos iCal Manualmente
 
-No futuro, obtenha o link iCal oficial exportado pelo Airbnb e salve em ambiente
-privado:
+Obtenha os novos arquivos exportados pelo sistema responsável pelas reservas e
+substitua, sem alterar os nomes:
 
-```env
-AIRBNB_CASA_TURQUESA_ICAL_URL=
-AIRBNB_CASA_CORAIS_ICAL_URL=
+```text
+calendar-fixtures/casa-turquesa.ics
+calendar-fixtures/casa-corais.ics
 ```
 
-Depois habilite o calendário correspondente em `src/data/external-calendars.ts`.
+Execute:
 
-## Configurar Booking
-
-Use o calendário iCal disponibilizado pela propriedade no Booking.com, quando
-existir, e salve em:
-
-```env
-BOOKING_CASA_TURQUESA_ICAL_URL=
-BOOKING_CASA_CORAIS_ICAL_URL=
+```bash
+npm run availability:generate
+npm run build
 ```
 
-Não use scraping nem automação de painel.
-
-## Adicionar Outro iCal
-
-Adicione um item em `src/data/external-calendars.ts` com:
-
-- `provider: "ical"`
-- `houseId`
-- `envVar`
-- `enabled: true`
-
-O link real fica fora do código, em variável de ambiente privada.
+Confira no terminal as contagens de eventos e períodos de cada casa. O comando
+não imprime UID, descrição, hóspede ou link privado. Os arquivos `.ics` são locais
+e ignorados pelo Git; somente `src/generated/availability.json` deve ser publicado.
 
 ## Como a Sincronização Funciona
 
 O site publicado é estático. Ele não busca calendários privados no navegador.
 
-O fluxo futuro é:
+Para a sincronização futura, configure os links em um ambiente privado:
 
-1. Um processo externo roda `npm run sync:calendars`.
-2. O script lê URLs privadas do ambiente.
-3. Baixa os arquivos ICS.
+```env
+CASA_TURQUESA_ICAL_URL=
+CASA_CORAIS_ICAL_URL=
+```
+
+O fluxo é:
+
+1. Um processo externo lê as duas variáveis privadas.
+2. Executa `npm run availability:sync`.
+3. Baixa e interpreta os arquivos ICS.
 4. Gera `src/generated/availability.json`.
 5. O build cria a pasta `out/`.
 6. O servidor publica apenas arquivos estáticos.
 
-Calendários iCal não são instantâneos. Atrasos dependem de Airbnb, Booking, Vrbo
-ou do provedor usado. A frequência futura pode ser 15 minutos, 30 minutos ou 1
-hora, conforme infraestrutura.
+Se qualquer calendário falhar, o JSON anterior é mantido integralmente. Assim,
+uma indisponibilidade temporária do provedor não transforma datas ocupadas em
+datas livres.
+
+Calendários iCal não são instantâneos. Atrasos dependem do provedor usado. A
+automação inicial roda uma vez por hora e essa frequência pode ser alterada.
 
 ## Automação Futura
 
-Um GitHub Actions futuro poderá:
+Um GitHub Actions, cron, Cloudflare, Vercel, Netlify ou servidor próprio poderá:
 
 1. Rodar periodicamente.
-2. Executar `npm run sync:calendars`.
+2. Executar `npm run availability:sync`.
 3. Executar `npm run build`.
 4. Publicar `out/`.
 
-Credenciais reais devem ficar em GitHub Secrets ou ambiente equivalente.
+Credenciais reais devem ficar em GitHub Secrets ou ambiente equivalente. Nunca
+use `NEXT_PUBLIC_`, `public/`, código React ou `localStorage` para links iCal.
 
 ## Onde Alterar Dados Importantes
 

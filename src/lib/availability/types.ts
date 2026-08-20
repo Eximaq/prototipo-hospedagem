@@ -33,6 +33,36 @@ export type AvailabilityRange = {
   endDate: string;
 };
 
+export type CalendarEvent = {
+  uid?: string;
+  startDate: string;
+  endDate: string;
+  status: "confirmed" | "tentative" | "cancelled";
+};
+
+export type CalendarParseResult = {
+  eventsFound: number;
+  events: CalendarEvent[];
+  cancelledEvents?: number;
+  invalidEvents?: number;
+};
+
+export type GeneratedUnavailableRange = {
+  start: string;
+  end: string;
+};
+
+export type GeneratedHouseAvailability = {
+  houseId: string;
+  updatedAt: string | null;
+  unavailableRanges: GeneratedUnavailableRange[];
+};
+
+export type GeneratedAvailabilitySnapshot = {
+  updatedAt: string | null;
+  houses: Record<string, GeneratedHouseAvailability>;
+};
+
 export type ExternalCalendarProvider =
   | "airbnb"
   | "booking"
@@ -62,4 +92,10 @@ export type AvailabilityMergeOptions = {
 
 export interface AvailabilityProvider {
   getReservations(houseId: string): Promise<Reservation[]>;
+}
+
+export interface CalendarSource {
+  readonly houseId: string;
+  readonly label: string;
+  getEvents(): Promise<CalendarParseResult>;
 }

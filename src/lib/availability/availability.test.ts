@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { calculateNights } from "@/lib/availability/date-utils";
 import {
   isDateAvailableFromRanges,
   isDateUnavailableFromRanges,
   isRangeAvailableFromRanges,
+  mergeUnavailableRanges,
   mergeAvailabilitySources,
 } from "@/lib/availability/merge";
 import type { Reservation } from "@/lib/availability/types";
@@ -64,6 +66,17 @@ describe("availability merge", () => {
     expect(ranges).toEqual([{ startDate: "2026-09-10", endDate: "2026-09-14" }]);
   });
 
+  it("merges normalized ranges directly and ignores empty or invalid periods", () => {
+    expect(
+      mergeUnavailableRanges([
+        { startDate: "2026-09-10", endDate: "2026-09-15" },
+        { startDate: "2026-09-14", endDate: "2026-09-20" },
+        { startDate: "2026-09-20", endDate: "2026-09-22" },
+        { startDate: "2026-10-01", endDate: "2026-10-01" },
+      ]),
+    ).toEqual([{ startDate: "2026-09-10", endDate: "2026-09-22" }]);
+  });
+
   it("does not block cancelled reservations", () => {
     const ranges = mergeAvailabilitySources([
       reservation({ id: "cancelled", status: "cancelled" }),
@@ -111,5 +124,19 @@ describe("availability merge", () => {
     expect(isRangeAvailableFromRanges("2026-09-10", "2026-09-25", ranges)).toBe(false);
     expect(isRangeAvailableFromRanges("2026-09-10", "2026-09-15", ranges)).toBe(true);
     expect(isRangeAvailableFromRanges("2026-09-20", "2026-09-25", ranges)).toBe(true);
+  });
+
+  it("rejects an occupied check-in and an invalid check-out", () => {
+    const ranges = [{ startDate: "2026-09-15", endDate: "2026-09-20" }];
+
+    expect(isRangeAvailableFromRanges("2026-09-15", "2026-09-22", ranges)).toBe(false);
+    expect(isRangeAvailableFromRanges("2026-09-22", "2026-09-22", ranges)).toBe(false);
+    expect(isRangeAvailableFromRanges("2026-09-22", "2026-09-21", ranges)).toBe(false);
+  });
+
+  it("calculates nights across month and year boundaries", () => {
+    expect(calculateNights("2026-09-29", "2026-10-03")).toBe(4);
+    expect(calculateNights("2026-12-30", "2027-01-03")).toBe(4);
+    expect(calculateNights("2026-09-10", "2026-09-10")).toBe(0);
   });
 });

@@ -28,26 +28,26 @@ export function buildWhatsAppMessage({
   notes,
 }: WhatsAppInquiry) {
   const nights = calculateNights(checkIn, checkOut);
-  const lines = ["Olá! Gostaria de consultar uma estadia nas Casas Milagres."];
+  const lines = ["Olá! Gostaria de consultar uma hospedagem nas Casas Milagres."];
 
   const stayLines = [
-    property || room ? `Casa: ${property || room}` : "",
-    checkIn ? `Entrada: ${formatDateForDisplay(checkIn)}` : "",
-    checkOut ? `Saída: ${formatDateForDisplay(checkOut)}` : "",
-    nights ? `Estadia: ${nights} noite${nights === 1 ? "" : "s"}` : "",
+    property || room ? `🏡 Casa: ${property || room}` : "",
+    checkIn ? `📅 Entrada: ${formatDateForDisplay(checkIn)}` : "",
+    checkOut ? `📅 Saída: ${formatDateForDisplay(checkOut)}` : "",
+    nights ? `🌙 Estadia: ${nights} noite${nights === 1 ? "" : "s"}` : "",
   ].filter(Boolean);
 
   if (stayLines.length) {
-    lines.push("", "HOSPEDAGEM", "", ...stayLines);
+    lines.push("", ...stayLines);
   }
 
   const guestLines = [
-    typeof adults === "number" ? `Adultos: ${adults}` : "",
-    typeof children === "number" && children > 0 ? `Crianças: ${children}` : "",
+    typeof adults === "number" ? `👥 Adultos: ${adults}` : "",
+    typeof children === "number" ? `👶 Crianças: ${children}` : "",
   ].filter(Boolean);
 
   if (guestLines.length) {
-    lines.push("", "HÓSPEDES", "", ...guestLines);
+    lines.push("", ...guestLines);
   }
 
   const responsibleLines = [
@@ -66,7 +66,7 @@ export function buildWhatsAppMessage({
 
   lines.push(
     "",
-    "Gostaria de receber informações sobre disponibilidade, valores e condições para esse período.",
+    "Gostaria de confirmar disponibilidade e receber informações sobre valores.",
   );
 
   return lines.join("\n");
