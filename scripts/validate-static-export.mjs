@@ -12,6 +12,53 @@ const publicPages = [
   "/casas/casa-corais-milagres/",
   "/contato/",
 ];
+const expectedSeo = {
+  "/": {
+    title: "Hospedagem em São Miguel dos Milagres | Casas Milagres",
+    description:
+      "Conheça a Casa Turquesa e a Casa Corais Milagres, duas opções de hospedagem com piscina para grupos e famílias no litoral de Alagoas.",
+    image: `${officialOrigin}/images/og-image.jpg`,
+    imageWidth: "3840",
+    imageHeight: "2558",
+    schemaTypes: ["Organization", "WebSite"],
+  },
+  "/casas/": {
+    title: "Casas para temporada em São Miguel dos Milagres | Casas Milagres",
+    description:
+      "Compare a Casa Turquesa beira-mar e a Casa Corais Milagres, com fotos, suítes, piscinas, estrutura e consulta direta de disponibilidade.",
+    image: `${officialOrigin}/images/og-image.jpg`,
+    imageWidth: "3840",
+    imageHeight: "2558",
+    schemaTypes: ["CollectionPage", "ItemList"],
+  },
+  "/casas/casa-turquesa-05/": {
+    title: "Casa Turquesa: casa de temporada beira-mar | Casas Milagres",
+    description:
+      "Casa de temporada beira-mar em São Miguel dos Milagres para até 14 hóspedes, com 7 suítes, piscina privativa, churrasqueira e apoio na rotina.",
+    image: `${officialOrigin}/images/casa-01/fachada.png`,
+    imageWidth: "1448",
+    imageHeight: "1086",
+    schemaTypes: ["VacationRental", "BreadcrumbList"],
+  },
+  "/casas/casa-corais-milagres/": {
+    title: "Casa Corais Milagres: casa com piscina | Casas Milagres",
+    description:
+      "Casa de temporada em São Miguel dos Milagres para até 8 hóspedes, com 3 suítes climatizadas, piscina privativa e acesso à praia pelo condomínio.",
+    image: `${officialOrigin}/images/casa-02/piscina.jpg`,
+    imageWidth: "3840",
+    imageHeight: "2558",
+    schemaTypes: ["VacationRental", "BreadcrumbList"],
+  },
+  "/contato/": {
+    title: "Contato e disponibilidade | Casas Milagres",
+    description:
+      "Consulte datas da Casa Turquesa e da Casa Corais Milagres e envie sua solicitação de hospedagem em São Miguel dos Milagres pelo WhatsApp.",
+    image: `${officialOrigin}/images/og-image.jpg`,
+    imageWidth: "3840",
+    imageHeight: "2558",
+    schemaTypes: ["ContactPage"],
+  },
+};
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -31,6 +78,31 @@ const mimeTypes = {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getMetaContent(html, attribute, value) {
+  const tags = html.match(/<meta\b[^>]*>/gi) || [];
+  const expectedAttribute = new RegExp(
+    `${attribute}=["']${value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`,
+    "i",
+  );
+  const tag = tags.find((item) => expectedAttribute.test(item));
+  return tag?.match(/content=["']([^"']*)["']/i)?.[1];
+}
+
+function getSchemaTypes(value, types = new Set()) {
+  if (Array.isArray(value)) {
+    value.forEach((item) => getSchemaTypes(item, types));
+    return types;
+  }
+
+  if (value && typeof value === "object") {
+    const schemaType = value["@type"];
+    if (typeof schemaType === "string") types.add(schemaType);
+    Object.values(value).forEach((item) => getSchemaTypes(item, types));
+  }
+
+  return types;
 }
 
 function resolveStaticPath(urlPath) {
@@ -849,16 +921,105 @@ async function runHttpTests(baseUrl, report) {
   const pages = publicPages;
   const assets = new Set();
   const links = new Set();
+  const pageTitles = new Set();
+  const pageDescriptions = new Set();
   const attrPattern = /(?:href|src)=["']([^"']+)["']/gi;
 
   for (const page of pages) {
     const { text } = await fetchText(`${baseUrl}${page}`);
+    const expectation = expectedSeo[page];
     const canonical = text.match(/<link rel="canonical" href="([^"]+)"\s*\/?\s*>/i)?.[1];
     const expectedCanonical = new URL(page, officialOrigin).toString();
     if (canonical === expectedCanonical) {
       report.pass(`canonical ${page}`, expectedCanonical);
     } else {
       report.fail(`canonical ${page}`, canonical || "missing");
+    }
+
+    const title = text.match(/<title>([^<]+)<\/title>/i)?.[1];
+    const description = getMetaContent(text, "name", "description");
+    const robots = getMetaContent(text, "name", "robots");
+    const googleBot = getMetaContent(text, "name", "googlebot");
+    const openGraphTitle = getMetaContent(text, "property", "og:title");
+    const openGraphDescription = getMetaContent(text, "property", "og:description");
+    const openGraphUrl = getMetaContent(text, "property", "og:url");
+    const openGraphImage = getMetaContent(text, "property", "og:image");
+    const openGraphImageWidth = getMetaContent(text, "property", "og:image:width");
+    const openGraphImageHeight = getMetaContent(text, "property", "og:image:height");
+    const twitterCard = getMetaContent(text, "name", "twitter:card");
+    const twitterTitle = getMetaContent(text, "name", "twitter:title");
+    const twitterDescription = getMetaContent(text, "name", "twitter:description");
+    const twitterImage = getMetaContent(text, "name", "twitter:image");
+    const h1Count = (text.match(/<h1(?:\s|>)/gi) || []).length;
+    const semanticStructure = ["header", "nav", "main", "footer"].every((tag) =>
+      new RegExp(`<${tag}(?:\\s|>)`, "i").test(text),
+    );
+    const validPageMetadata =
+      title === expectation.title &&
+      description === expectation.description &&
+      robots === "index, follow" &&
+      googleBot?.includes("index, follow") &&
+      googleBot.includes("max-image-preview:large") &&
+      openGraphTitle === expectation.title &&
+      openGraphDescription === expectation.description &&
+      openGraphUrl === expectedCanonical &&
+      openGraphImage === expectation.image &&
+      openGraphImageWidth === expectation.imageWidth &&
+      openGraphImageHeight === expectation.imageHeight &&
+      twitterCard === "summary_large_image" &&
+      twitterTitle === expectation.title &&
+      twitterDescription === expectation.description &&
+      twitterImage === expectation.image &&
+      h1Count === 1 &&
+      semanticStructure;
+
+    if (validPageMetadata) {
+      report.pass(`static SEO ${page}`, "metadata, social cards, index and H1");
+    } else {
+      report.fail(
+        `static SEO ${page}`,
+        JSON.stringify({
+          title,
+          description,
+          robots,
+          googleBot,
+          openGraphTitle,
+          openGraphDescription,
+          openGraphUrl,
+          openGraphImage,
+          openGraphImageWidth,
+          openGraphImageHeight,
+          twitterCard,
+          twitterTitle,
+          twitterDescription,
+          twitterImage,
+          h1Count,
+          semanticStructure,
+        }),
+      );
+    }
+    pageTitles.add(title);
+    pageDescriptions.add(description);
+
+    const jsonLdBlocks = [
+      ...text.matchAll(
+        /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+      ),
+    ].map((match) => JSON.parse(match[1]));
+    const schemaTypes = jsonLdBlocks.reduce(
+      (types, block) => getSchemaTypes(block, types),
+      new Set(),
+    );
+    const serializedSchemas = JSON.stringify(jsonLdBlocks);
+    const validSchemas =
+      expectation.schemaTypes.every((schemaType) => schemaTypes.has(schemaType)) &&
+      !/aggregateRating|reviewCount|"review"|"offers"|priceCurrency|availability/.test(
+        serializedSchemas,
+      );
+    if (validSchemas) {
+      report.pass(`structured data ${page}`, [...schemaTypes].join(", "));
+    } else {
+      report.fail(`structured data ${page}`, [...schemaTypes].join(", ") || "missing");
     }
 
     let match;
@@ -890,6 +1051,15 @@ async function runHttpTests(baseUrl, report) {
         links.add(url.pathname + url.search);
       }
     }
+  }
+
+  if (pageTitles.size === pages.length && pageDescriptions.size === pages.length) {
+    report.pass("unique page metadata", "all titles and descriptions are unique");
+  } else {
+    report.fail(
+      "unique page metadata",
+      `titles=${pageTitles.size}, descriptions=${pageDescriptions.size}`,
+    );
   }
 
   for (const asset of assets) {

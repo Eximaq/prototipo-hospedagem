@@ -20,7 +20,8 @@ export function HouseShowcase() {
             compact
           />
           <p className="max-w-md text-sm leading-6 text-[var(--color-muted)]">
-            As duas opções contam com piscina, Wi-Fi e churrasqueira. Os detalhes completos ficam na página de cada casa.
+            As duas opções contam com piscina, Wi-Fi e churrasqueira. Os detalhes completos
+            ficam na página de cada casa.
           </p>
         </div>
 
@@ -61,7 +62,11 @@ export function HouseShowcase() {
                       key={amenity}
                       className="inline-flex min-h-8 items-center gap-1.5 border border-[var(--color-line)] bg-white/55 px-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.09em] text-[var(--color-muted)]"
                     >
-                      <Check aria-hidden="true" className="text-[var(--color-copper)]" size={13} />
+                      <Check
+                        aria-hidden="true"
+                        className="text-[var(--color-copper)]"
+                        size={13}
+                      />
                       {amenity}
                     </span>
                   ))}
@@ -71,7 +76,7 @@ export function HouseShowcase() {
                     href={`/casas/${house.slug}/`}
                     className="inline-flex min-h-11 items-center justify-center gap-2 border border-[var(--color-ocean)] px-3 text-sm font-semibold text-[var(--color-ocean)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-gold)]"
                   >
-                    Conhecer a casa
+                    Conhecer {house.name}
                     <ArrowRight aria-hidden="true" size={16} />
                   </Link>
                   <Link

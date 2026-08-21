@@ -5,26 +5,52 @@ type SeoInput = {
   title: string;
   description: string;
   path?: string;
-  image?: string;
+  image?: {
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+  };
+};
+
+const defaultSeoImage = {
+  src: siteConfig.ogImage,
+  alt: "Casa de temporada com piscina em São Miguel dos Milagres",
+  width: 3840,
+  height: 2558,
 };
 
 export function createMetadata({
   title,
   description,
   path = "/",
-  image = siteConfig.ogImage,
+  image = defaultSeoImage,
 }: SeoInput): Metadata {
+  const brandedTitle = `${title} | ${siteConfig.shortName}`;
   const canonicalUrl = new URL(path, siteConfig.url).toString();
-  const imageUrl = new URL(image, siteConfig.url).toString();
+  const imageUrl = new URL(image.src, siteConfig.url).toString();
 
   return {
-    title,
+    title: {
+      absolute: brandedTitle,
+    },
     description,
     alternates: {
       canonical: canonicalUrl,
     },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
     openGraph: {
-      title,
+      title: brandedTitle,
       description,
       url: canonicalUrl,
       siteName: siteConfig.name,
@@ -33,15 +59,15 @@ export function createMetadata({
       images: [
         {
           url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: siteConfig.name,
+          width: image.width,
+          height: image.height,
+          alt: image.alt,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: brandedTitle,
       description,
       images: [imageUrl],
     },

@@ -129,7 +129,7 @@ export function HouseComparisonSection() {
                   href={`/casas/${house.slug}/`}
                   className="inline-flex min-h-11 items-center justify-center gap-2 border border-[var(--color-ocean)] px-4 text-sm font-semibold text-[var(--color-ocean)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)]"
                 >
-                  Conhecer a casa
+                  Conhecer {house.name}
                   <ArrowRight aria-hidden="true" size={16} />
                 </Link>
                 <Link

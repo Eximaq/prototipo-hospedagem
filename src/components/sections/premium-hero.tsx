@@ -17,7 +17,7 @@ export function PremiumHero() {
         src="/images/experiences/milagres-hero.jpg"
         alt="Casa de temporada com piscina, arquitetura natural e jardim tropical"
         fill
-        priority
+        preload
         sizes="100vw"
         className="object-cover"
       />

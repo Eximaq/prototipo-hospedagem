@@ -10,16 +10,10 @@ import { cn } from "@/lib/format";
 type HouseGalleryProps = {
   images: HouseImage[];
   label: string;
-  priority?: boolean;
   compact?: boolean;
 };
 
-export function HouseGallery({
-  images,
-  label,
-  priority = false,
-  compact = false,
-}: HouseGalleryProps) {
+export function HouseGallery({ images, label, compact = false }: HouseGalleryProps) {
   const [index, setIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const touchStart = useRef<number | null>(null);
@@ -28,9 +22,12 @@ export function HouseGallery({
   const current = images[index];
   const total = images.length;
 
-  const goTo = useCallback((nextIndex: number) => {
-    setIndex((nextIndex + total) % total);
-  }, [total]);
+  const goTo = useCallback(
+    (nextIndex: number) => {
+      setIndex((nextIndex + total) % total);
+    },
+    [total],
+  );
 
   const next = useCallback(() => {
     setIndex((currentIndex) => (currentIndex + 1) % total);
@@ -101,13 +98,12 @@ export function HouseGallery({
             className="flex h-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
             style={{ transform: `translateX(-${index * 100}%)` }}
           >
-            {images.map((image, imageIndex) => (
+            {images.map((image) => (
               <div className="relative h-full min-w-full" key={image.src}>
                 <Image
                   src={image.src}
                   alt={image.alt}
                   fill
-                  priority={priority && imageIndex === 0}
                   sizes={
                     compact
                       ? "(min-width: 1024px) 42vw, (min-width: 768px) 50vw, 100vw"
@@ -131,11 +127,22 @@ export function HouseGallery({
             <Maximize2 aria-hidden="true" size={17} />
             <span className="hidden sm:inline">Ver todas as fotos</span>
           </button>
-          <GalleryArrow direction="previous" onClick={previous} label={`Imagem anterior de ${label}`} />
-          <GalleryArrow direction="next" onClick={next} label={`Próxima imagem de ${label}`} />
+          <GalleryArrow
+            direction="previous"
+            onClick={previous}
+            label={`Imagem anterior de ${label}`}
+          />
+          <GalleryArrow
+            direction="next"
+            onClick={next}
+            label={`Próxima imagem de ${label}`}
+          />
         </div>
 
-        <div className="flex items-center justify-center gap-1.5" aria-label="Indicadores da galeria">
+        <div
+          className="flex items-center justify-center gap-1.5"
+          aria-label="Indicadores da galeria"
+        >
           {images.map((image, imageIndex) => (
             <button
               type="button"
@@ -214,7 +221,11 @@ function GalleryArrow({
       )}
       aria-label={label}
     >
-      {isPrevious ? <ChevronLeft aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}
+      {isPrevious ? (
+        <ChevronLeft aria-hidden="true" />
+      ) : (
+        <ChevronRight aria-hidden="true" />
+      )}
     </button>
   );
 }
@@ -237,7 +248,11 @@ function LightboxArrow({
       )}
       aria-label={isPrevious ? "Imagem anterior" : "Próxima imagem"}
     >
-      {isPrevious ? <ChevronLeft aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}
+      {isPrevious ? (
+        <ChevronLeft aria-hidden="true" />
+      ) : (
+        <ChevronRight aria-hidden="true" />
+      )}
     </button>
   );
 }

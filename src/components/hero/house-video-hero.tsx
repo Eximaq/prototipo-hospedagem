@@ -35,7 +35,7 @@ export function HouseVideoHero({ house, children }: HouseVideoHeroProps) {
             src={poster}
             alt={house.images[0].alt}
             fill
-            priority
+            preload
             sizes="100vw"
             className="object-cover motion-safe:hidden"
           />
@@ -45,7 +45,7 @@ export function HouseVideoHero({ house, children }: HouseVideoHeroProps) {
           src={poster}
           alt={house.images[0].alt}
           fill
-          priority
+          preload
           sizes="100vw"
           className="object-cover"
         />

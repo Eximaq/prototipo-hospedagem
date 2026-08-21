@@ -46,8 +46,28 @@ describe("static SEO routes", () => {
     expect(metadata.alternates).toEqual({
       canonical: `${officialOrigin}/casas/casa-turquesa-05/`,
     });
+    expect(metadata.title).toEqual({
+      absolute: "Casa de teste | Casas Milagres",
+    });
+    expect(metadata.robots).toMatchObject({
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+      },
+    });
     expect(metadata.openGraph).toMatchObject({
+      title: "Casa de teste | Casas Milagres",
       url: `${officialOrigin}/casas/casa-turquesa-05/`,
+      images: [
+        {
+          url: `${officialOrigin}/images/og-image.jpg`,
+          width: 3840,
+          height: 2558,
+        },
+      ],
     });
   });
 
