@@ -191,10 +191,13 @@ Copy-Item .env.example .env.local
 
 | Variável                 | Visibilidade | Finalidade                                       |
 | ------------------------ | ------------ | ------------------------------------------------ |
-| `NEXT_PUBLIC_SITE_URL`   | Pública      | URL final usada em canonical, sitemap e robots.  |
 | `NEXT_PUBLIC_BASE_PATH`  | Pública      | Subpasta usada em hospedagens como GitHub Pages. |
 | `CASA_TURQUESA_ICAL_URL` | Privada      | Calendário ICS da Casa Turquesa.                 |
 | `CASA_CORAIS_ICAL_URL`   | Privada      | Calendário ICS da Casa Corais.                   |
+
+O domínio canônico de produção é centralizado em `src/data/site-config.ts` como
+`https://casasmilagres.com.br`. Ele é usado por canonical, Open Graph,
+`sitemap.xml` e `robots.txt` e não depende de variável de ambiente.
 
 `.env.local` está no `.gitignore` e não deve ser commitado.
 

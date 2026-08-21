@@ -26,8 +26,7 @@ const homeFaq = [
   },
   {
     question: "As casas têm piscina, Wi-Fi e churrasqueira?",
-    answer:
-      "Sim. As duas casas contam com piscina, Wi-Fi e churrasqueira.",
+    answer: "Sim. As duas casas contam com piscina, Wi-Fi e churrasqueira.",
   },
   {
     question: "Qual casa combina melhor com grupos maiores?",
@@ -36,8 +35,7 @@ const homeFaq = [
   },
   {
     question: "As casas aceitam pets?",
-    answer:
-      "Não. Casa Turquesa e Casa Corais Milagres não aceitam pets.",
+    answer: "Não. Casa Turquesa e Casa Corais Milagres não aceitam pets.",
   },
 ];
 
@@ -46,12 +44,8 @@ export default function Home() {
     "@context": "https://schema.org",
     "@type": "LodgingBusiness",
     name: siteConfig.name,
-    ...(siteConfig.url
-      ? {
-          url: siteConfig.url,
-          image: `${siteConfig.url}${siteConfig.ogImage}`,
-        }
-      : {}),
+    url: siteConfig.url,
+    image: `${siteConfig.url}${siteConfig.ogImage}`,
     telephone: siteConfig.phone,
     address: {
       "@type": "PostalAddress",

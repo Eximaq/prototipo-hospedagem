@@ -5,16 +5,12 @@ import { siteConfig } from "@/data/site-config";
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  if (!siteConfig.url) return [];
-
-  const now = new Date();
-  const staticRoutes = ["", "/casas/", "/contato/"];
+  const lastModified = new Date();
   const houseRoutes = houses.map((house) => `/casas/${house.slug}/`);
+  const publicRoutes = ["/", "/casas/", ...houseRoutes, "/contato/"];
 
-  return [...staticRoutes, ...houseRoutes].map((route) => ({
-    url: `${siteConfig.url}${route}`,
-    lastModified: now,
-    changeFrequency: "monthly",
-    priority: route === "" ? 1 : 0.7,
+  return publicRoutes.map((route) => ({
+    url: new URL(route, siteConfig.url).toString(),
+    lastModified,
   }));
 }

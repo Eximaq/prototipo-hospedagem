@@ -4,6 +4,14 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 
 const root = path.resolve("out");
+const officialOrigin = "https://casasmilagres.com.br";
+const publicPages = [
+  "/",
+  "/casas/",
+  "/casas/casa-turquesa-05/",
+  "/casas/casa-corais-milagres/",
+  "/contato/",
+];
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -802,19 +810,57 @@ async function runHttpTests(baseUrl, report) {
     else report.fail(`static file ${file}`, `status=${status}`);
   }
 
-  const pages = [
-    "/",
-    "/casas/",
-    "/casas/casa-turquesa-05/",
-    "/casas/casa-corais-milagres/",
-    "/contato/",
-  ];
+  const sitemapResponse = await fetchText(`${baseUrl}/sitemap.xml`);
+  const sitemapUrls = [...sitemapResponse.text.matchAll(/<loc>([^<]+)<\/loc>/g)].map(
+    (match) => match[1],
+  );
+  const sitemapDates = [
+    ...sitemapResponse.text.matchAll(/<lastmod>([^<]+)<\/lastmod>/g),
+  ].map((match) => match[1]);
+  const expectedSitemapUrls = publicPages.map((page) =>
+    new URL(page, officialOrigin).toString(),
+  );
+  const validSitemap =
+    sitemapResponse.status === 200 &&
+    JSON.stringify(sitemapUrls) === JSON.stringify(expectedSitemapUrls) &&
+    sitemapDates.length === expectedSitemapUrls.length &&
+    sitemapDates.every((date) => !Number.isNaN(Date.parse(date)));
+  if (validSitemap) {
+    report.pass(
+      "sitemap content",
+      `${sitemapUrls.length} canonical URLs with lastModified`,
+    );
+  } else {
+    report.fail("sitemap content", JSON.stringify({ sitemapUrls, sitemapDates }));
+  }
+
+  const robotsResponse = await fetchText(`${baseUrl}/robots.txt`);
+  const validRobots =
+    robotsResponse.status === 200 &&
+    /User-Agent:\s*\*/i.test(robotsResponse.text) &&
+    /Allow:\s*\//i.test(robotsResponse.text) &&
+    robotsResponse.text.includes(`Sitemap: ${officialOrigin}/sitemap.xml`);
+  if (validRobots) {
+    report.pass("robots content", "crawl allowed and canonical sitemap declared");
+  } else {
+    report.fail("robots content", robotsResponse.text.trim());
+  }
+
+  const pages = publicPages;
   const assets = new Set();
   const links = new Set();
   const attrPattern = /(?:href|src)=["']([^"']+)["']/gi;
 
   for (const page of pages) {
     const { text } = await fetchText(`${baseUrl}${page}`);
+    const canonical = text.match(/<link rel="canonical" href="([^"]+)"\s*\/?\s*>/i)?.[1];
+    const expectedCanonical = new URL(page, officialOrigin).toString();
+    if (canonical === expectedCanonical) {
+      report.pass(`canonical ${page}`, expectedCanonical);
+    } else {
+      report.fail(`canonical ${page}`, canonical || "missing");
+    }
+
     let match;
     while ((match = attrPattern.exec(text))) {
       const raw = match[1];

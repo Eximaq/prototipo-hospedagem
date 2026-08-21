@@ -23,7 +23,6 @@ jobs:
       CASA_TURQUESA_ICAL_URL: ${{ secrets.CASA_TURQUESA_ICAL_URL }}
       CASA_CORAIS_ICAL_URL: ${{ secrets.CASA_CORAIS_ICAL_URL }}
       NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
-      NEXT_PUBLIC_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6

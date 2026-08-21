@@ -1,4 +1,4 @@
-const configuredPublicUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") || "";
+const canonicalSiteUrl = "https://casasmilagres.com.br";
 const whatsappNumber = "5582982126658";
 
 function formatBrazilianPhone(value: string) {
@@ -14,7 +14,7 @@ function formatBrazilianPhone(value: string) {
 export const siteConfig = {
   name: "CASAS MILAGRES",
   shortName: "Casas Milagres",
-  url: configuredPublicUrl,
+  url: canonicalSiteUrl,
   description:
     "Casas para temporada em São Miguel dos Milagres, com piscina, suítes, privacidade e consulta de disponibilidade pelo WhatsApp.",
   whatsappNumber,
