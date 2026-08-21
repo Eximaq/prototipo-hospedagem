@@ -186,7 +186,7 @@ export default async function HouseDetailPage({ params }: Props) {
             <SectionHeading
               eyebrow="Localização"
               title="Onde você vai estar."
-              description={`${house.name} fica em São Miguel dos Milagres. O endereço exato é confirmado durante o atendimento.`}
+              description={`${house.name} fica em São Miguel dos Milagres. Confira abaixo a localização exata e as rotas de acesso.`}
               compact
             />
             <ul className="mt-5 space-y-2 text-sm leading-6 text-[var(--color-muted)]">

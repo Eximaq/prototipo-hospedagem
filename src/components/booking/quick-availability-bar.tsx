@@ -6,6 +6,11 @@ import { CalendarDays, Home, Search, Users, type LucideIcon } from "lucide-react
 import type { BookingHouseOption } from "@/components/booking/availability-form";
 import { addDays, calculateNights, getTodayISO } from "@/lib/availability/date-utils";
 import { trackEvent } from "@/lib/analytics";
+import {
+  normalizeGuestCount,
+  parseNumericInputValue,
+  type NumericInputValue,
+} from "@/lib/guest-count";
 
 type QuickAvailabilityBarProps = {
   houses: BookingHouseOption[];
@@ -16,7 +21,7 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
   const [houseSlug, setHouseSlug] = useState(houses[0]?.slug || "");
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
-  const [guests, setGuests] = useState(2);
+  const [guests, setGuests] = useState<NumericInputValue>(2);
   const selectedHouse = useMemo(
     () => houses.find((house) => house.slug === houseSlug),
     [houseSlug, houses],
@@ -26,6 +31,7 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
     checkIn && selectedHouse?.maxNights
       ? addDays(checkIn, selectedHouse.maxNights)
       : undefined;
+  const guestError = getGuestError(guests, selectedHouse);
 
   function hasInvalidStay(
     nextCheckIn: string,
@@ -42,8 +48,11 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
   function updateHouseSlug(value: string) {
     const nextHouse = houses.find((house) => house.slug === value);
     setHouseSlug(value);
-    if (nextHouse?.guests)
-      setGuests((current) => Math.min(current, nextHouse.guests || current));
+    if (nextHouse?.guests) {
+      setGuests((current) =>
+        Math.min(normalizeGuestCount(current, 1), nextHouse.guests || 1),
+      );
+    }
     if (nextHouse && hasInvalidStay(checkIn, checkOut, nextHouse)) setCheckOut("");
   }
 
@@ -52,21 +61,18 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
     if (hasInvalidStay(value, checkOut)) setCheckOut("");
   }
 
-  function updateGuests(value: number) {
-    const safeValue = Math.max(1, Math.trunc(value) || 1);
-    setGuests(
-      selectedHouse?.guests ? Math.min(safeValue, selectedHouse.guests) : safeValue,
-    );
-  }
-
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const normalizedGuests = normalizeGuestCount(guests, 1);
+    setGuests(normalizedGuests);
+
+    if (getGuestError(normalizedGuests, selectedHouse)) return;
 
     const detail = {
       houseSlug,
       checkIn,
       checkOut,
-      adults: guests,
+      adults: normalizedGuests,
       children: 0,
     };
 
@@ -74,7 +80,7 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
       houseSlug,
       hasCheckIn: Boolean(checkIn),
       hasCheckOut: Boolean(checkOut),
-      guests,
+      guests: normalizedGuests,
     });
 
     window.dispatchEvent(new CustomEvent("booking-prefill", { detail }));
@@ -83,7 +89,7 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
     if (houseSlug) params.set("casa", houseSlug);
     if (checkIn) params.set("checkIn", checkIn);
     if (checkOut) params.set("checkOut", checkOut);
-    params.set("adults", String(Math.max(1, guests)));
+    params.set("adults", String(normalizedGuests));
 
     const nextUrl = `/?${params.toString()}#consultar`;
     window.history.replaceState(null, "", nextUrl);
@@ -99,7 +105,7 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
         <select
           value={houseSlug}
           onChange={(event) => updateHouseSlug(event.target.value)}
-          className="w-full bg-transparent text-sm font-semibold outline-none"
+          className="w-full bg-transparent text-base font-semibold outline-none md:text-sm"
           aria-label="Escolher casa"
         >
           {houses.map((house) => (
@@ -116,7 +122,7 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
           min={today}
           value={checkIn}
           onChange={(event) => updateCheckIn(event.target.value)}
-          className="w-full bg-transparent text-sm font-semibold outline-none"
+          className="w-full bg-transparent text-base font-semibold outline-none md:text-sm"
           aria-label="Data de check-in"
         />
       </QuickField>
@@ -128,7 +134,7 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
           max={maxCheckOut}
           value={checkOut}
           onChange={(event) => setCheckOut(event.target.value)}
-          className="w-full bg-transparent text-sm font-semibold outline-none"
+          className="w-full bg-transparent text-base font-semibold outline-none md:text-sm"
           aria-label="Data de check-out"
         />
       </QuickField>
@@ -138,22 +144,50 @@ export function QuickAvailabilityBar({ houses }: QuickAvailabilityBarProps) {
           type="number"
           min={1}
           max={selectedHouse?.guests ?? undefined}
+          step={1}
+          inputMode="numeric"
           value={guests}
-          onChange={(event) => updateGuests(Number(event.target.value))}
-          className="w-full bg-transparent text-sm font-semibold outline-none"
+          onChange={(event) => setGuests(parseNumericInputValue(event.currentTarget.value))}
+          onBlur={() => setGuests((current) => normalizeGuestCount(current, 1))}
+          onFocus={(event) => event.currentTarget.select()}
+          className="w-full bg-transparent text-base font-semibold outline-none md:text-sm"
           aria-label="Quantidade de hóspedes"
+          aria-invalid={Boolean(guestError)}
+          aria-describedby={guestError ? "quick-guests-error" : undefined}
         />
       </QuickField>
 
       <button
         type="submit"
-        className="inline-flex min-h-14 items-center justify-center gap-2 bg-[var(--color-copper)] px-4 text-sm font-semibold text-[var(--color-ink)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+        disabled={guests === "" || Boolean(guestError)}
+        className="inline-flex min-h-14 items-center justify-center gap-2 bg-[var(--color-copper)] px-4 text-sm font-semibold text-[var(--color-ink)] transition hover:bg-[var(--color-ocean-strong)] hover:text-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
       >
         <Search aria-hidden="true" size={17} />
         Consultar disponibilidade
       </button>
+
+      {guestError ? (
+        <p
+          className="px-2 py-1 text-xs font-semibold text-red-700 md:col-span-full"
+          id="quick-guests-error"
+          aria-live="polite"
+        >
+          {guestError}
+        </p>
+      ) : null}
     </form>
   );
+}
+
+function getGuestError(guests: NumericInputValue, house?: BookingHouseOption) {
+  if (guests === "") return undefined;
+  if (!Number.isInteger(guests) || guests < 1) {
+    return "Informe pelo menos 1 hóspede.";
+  }
+  if (house?.guests && guests > house.guests) {
+    return `A ${house.name} recebe até ${house.guests} hóspedes.`;
+  }
+  return undefined;
 }
 
 function QuickField({

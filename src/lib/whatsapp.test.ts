@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { siteConfig } from "@/data/site-config";
 import { buildWhatsAppMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 
 describe("WhatsApp inquiry", () => {
@@ -52,7 +53,9 @@ describe("WhatsApp inquiry", () => {
       birthDate: "1992-01-01",
     });
 
-    expect(url).toMatch(/^https:\/\/wa\.me\/5582993563898\?text=/);
+    expect(url).toMatch(
+      new RegExp(`^https://wa\\.me/${siteConfig.whatsappNumber}\\?text=`),
+    );
     expect(decodeURIComponent(url)).toContain("🏡 Casa: Casa Corais Milagres");
   });
 });

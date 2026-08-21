@@ -284,7 +284,7 @@ async function runBrowserTests(baseUrl, report) {
       cdp,
       `new Promise((resolve) => {
       const open = [...document.querySelectorAll('button[aria-label]')]
-        .find((item) => (item.getAttribute('aria-label') || "").startsWith("Abrir galeria"));
+        .find((item) => (item.getAttribute('aria-label') || "").startsWith("Ver todas as fotos"));
       if (!open) return resolve({ ok: false, reason: "open button missing" });
       open.click();
       setTimeout(() => {
@@ -298,6 +298,41 @@ async function runBrowserTests(baseUrl, report) {
     );
     if (lightbox.ok) report.pass("lightbox", "opens and closes");
     else report.fail("lightbox", lightbox.reason);
+
+    for (const width of [320, 360, 390, 430]) {
+      await cdp.send("Emulation.setDeviceMetricsOverride", {
+        width,
+        height: 844,
+        deviceScaleFactor: 2,
+        mobile: true,
+      });
+      await navigate(cdp, `${baseUrl}/`, 900);
+      const mobileGuestField = await evalValue(
+        cdp,
+        `(() => {
+          const input = document.querySelector('input[aria-label="Quantidade de hóspedes"]');
+          if (!input) return { ok: false, reason: "guest input missing" };
+          const rect = input.getBoundingClientRect();
+          return {
+            ok:
+              rect.left >= 0 &&
+              rect.right <= window.innerWidth &&
+              Number.parseFloat(getComputedStyle(input).fontSize) >= 16 &&
+              input.inputMode === "numeric",
+            left: rect.left,
+            right: rect.right,
+            viewport: window.innerWidth,
+            fontSize: getComputedStyle(input).fontSize,
+            inputMode: input.inputMode,
+          };
+        })()`,
+      );
+      if (mobileGuestField.ok) {
+        report.pass(`guest field mobile ${width}px`, "fits viewport with numeric input");
+      } else {
+        report.fail(`guest field mobile ${width}px`, JSON.stringify(mobileGuestField));
+      }
+    }
 
     await cdp.send("Emulation.setDeviceMetricsOverride", {
       width: 390,
@@ -395,6 +430,151 @@ async function runBrowserTests(baseUrl, report) {
       );
     else report.fail("availability calendar", JSON.stringify(calendar));
 
+    const guestEditing = await evalValue(
+      cdp,
+      `new Promise(async (resolve) => {
+      const adults = document.querySelector('input[name="adults"]');
+      const children = document.querySelector('input[name="children"]');
+      const submit = document.querySelector('button[type="submit"]');
+      if (!adults || !children || !submit) {
+        return resolve({ ok: false, reason: "guest fields missing" });
+      }
+
+      const inputSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+      const setValue = (element, value) => {
+        inputSetter.call(element, value);
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+      };
+      const pause = (duration = 100) => new Promise((done) => setTimeout(done, duration));
+
+      adults.focus();
+      setValue(adults, "");
+      await pause();
+      const adultsCanBeEmpty = adults.value === "";
+      adults.blur();
+      await pause();
+      const adultsBlurToMinimum = adults.value === "1";
+
+      setValue(adults, "5");
+      await pause();
+      const adultsCanBeReplaced = adults.value === "5";
+
+      children.focus();
+      setValue(children, "");
+      await pause();
+      const childrenCanBeEmpty = children.value === "";
+      setValue(children, "3");
+      await pause();
+      const childrenCanBeReplaced = children.value === "3";
+      setValue(children, "");
+      await pause();
+      children.blur();
+      await pause();
+      const childrenBlurToMinimum = children.value === "0";
+
+      setValue(children, "2");
+      setValue(adults, "14");
+      await pause(180);
+      const capacityBlocked =
+        submit.disabled === true &&
+        (document.body.textContent || "").includes("recebe até 14 hóspedes");
+
+      setValue(adults, "-1");
+      adults.focus();
+      adults.blur();
+      await pause();
+      const negativeCorrected = adults.value === "1";
+
+      setValue(adults, "5");
+      setValue(children, "2");
+      await pause(180);
+
+      resolve({
+        ok:
+          adultsCanBeEmpty &&
+          adultsBlurToMinimum &&
+          adultsCanBeReplaced &&
+          childrenCanBeEmpty &&
+          childrenCanBeReplaced &&
+          childrenBlurToMinimum &&
+          capacityBlocked &&
+          negativeCorrected &&
+          adults.value === "5" &&
+          children.value === "2",
+        adultsCanBeEmpty,
+        adultsBlurToMinimum,
+        adultsCanBeReplaced,
+        childrenCanBeEmpty,
+        childrenCanBeReplaced,
+        childrenBlurToMinimum,
+        capacityBlocked,
+        negativeCorrected,
+        finalAdults: adults.value,
+        finalChildren: children.value,
+      });
+    })`,
+    );
+    if (guestEditing.ok) {
+      report.pass("guest input editing", "empty state, replacement, blur and capacity");
+    } else {
+      report.fail("guest input editing", JSON.stringify(guestEditing));
+    }
+
+    await evalValue(
+      cdp,
+      `(() => {
+        const adults = document.querySelector('input[name="adults"]');
+        if (!adults) return false;
+        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+        setter.call(adults, "3");
+        adults.dispatchEvent(new Event("input", { bubbles: true }));
+        adults.dispatchEvent(new Event("change", { bubbles: true }));
+        adults.focus();
+        return true;
+      })()`,
+    );
+    await sleep(120);
+    await cdp.send("Input.dispatchKeyEvent", {
+      type: "keyDown",
+      key: "a",
+      code: "KeyA",
+      modifiers: 2,
+    });
+    await cdp.send("Input.dispatchKeyEvent", {
+      type: "keyUp",
+      key: "a",
+      code: "KeyA",
+      modifiers: 2,
+    });
+    await cdp.send("Input.insertText", { text: "8" });
+    await sleep(180);
+    const keyboardReplacement = await evalValue(
+      cdp,
+      `(() => {
+        const adults = document.querySelector('input[name="adults"]');
+        const children = document.querySelector('input[name="children"]');
+        if (!adults || !children) return { ok: false, reason: "guest fields missing" };
+        const observedValue = adults.value;
+        const replaced = observedValue === "8";
+        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+        const setValue = (element, value) => {
+          setter.call(element, value);
+          element.dispatchEvent(new Event("input", { bubbles: true }));
+          element.dispatchEvent(new Event("change", { bubbles: true }));
+        };
+        setValue(adults, "5");
+        setValue(children, "2");
+        return { ok: replaced, value: observedValue };
+      })()`,
+    );
+    if (keyboardReplacement.ok) {
+      report.pass("guest keyboard replacement", "3 to 8 with Ctrl+A");
+    } else {
+      report.fail("guest keyboard replacement", JSON.stringify(keyboardReplacement));
+    }
+    await sleep(180);
+
     const formResult = await evalValue(
       cdp,
       `new Promise((resolve) => {
@@ -439,9 +619,11 @@ async function runBrowserTests(baseUrl, report) {
       : "";
     const validWhatsApp =
       formResult.ok &&
-      /^https:\/\/wa\.me\/5582993563898\?text=/.test(formResult.opened.url || "") &&
+      /^https:\/\/wa\.me\/\d{12,13}\?text=/.test(formResult.opened.url || "") &&
       decodedWhatsApp.includes("CPF: 529.982.247-25") &&
-      decodedWhatsApp.includes("Nascimento: 15/05/1990");
+      decodedWhatsApp.includes("Nascimento: 15/05/1990") &&
+      decodedWhatsApp.includes("Adultos: 5") &&
+      decodedWhatsApp.includes("Crianças: 2");
     if (validWhatsApp) report.pass("WhatsApp form", "opens encoded professional message");
     else report.fail("WhatsApp form", JSON.stringify(formResult));
 
@@ -456,7 +638,7 @@ async function runBrowserTests(baseUrl, report) {
       `new Promise((resolve) => {
         setTimeout(() => {
           const text = document.body.textContent || "";
-          const adults = document.querySelector('input[type="number"]');
+          const adults = document.querySelector('input[name="adults"]');
           const submit = document.querySelector('button[type="submit"]');
           resolve({
             ok:
@@ -501,6 +683,56 @@ async function runBrowserTests(baseUrl, report) {
       );
     } else {
       report.fail("house detail", JSON.stringify(housePage));
+    }
+
+    for (const expectedLocation of [
+      {
+        slug: "casa-turquesa-05",
+        residence: "Huna Residence",
+        googlePlace: "Huna+Residence",
+        coordinates: "-9.3054049,-35.4063443",
+      },
+      {
+        slug: "casa-corais-milagres",
+        residence: "Naluum Residence",
+        googlePlace: "Naluum+Residence",
+        coordinates: "-9.2933771,-35.3972914",
+      },
+    ]) {
+      await navigate(cdp, `${baseUrl}/casas/${expectedLocation.slug}/`, 1800);
+      const mapLocation = await evalValue(
+        cdp,
+        `(() => {
+          const googleLink = [...document.querySelectorAll('a')]
+            .find((item) => item.textContent.includes("Google Maps"));
+          const wazeLink = [...document.querySelectorAll('a')]
+            .find((item) => item.textContent.includes("Waze"));
+          const mapFrame = document.querySelector('iframe[title^="Mapa de"]');
+          const expected = ${JSON.stringify(expectedLocation)};
+          const embeddedQuery = mapFrame
+            ? new URL(mapFrame.src).searchParams.get("q")
+            : null;
+          const wazeCoordinates = wazeLink
+            ? new URL(wazeLink.href).searchParams.get("ll")
+            : null;
+          return {
+            ok:
+              googleLink?.href.includes(expected.googlePlace) &&
+              wazeCoordinates === expected.coordinates &&
+              embeddedQuery === expected.coordinates &&
+              (document.body.textContent || "").includes(expected.residence),
+            googleUrl: googleLink?.href || null,
+            wazeCoordinates,
+            embeddedQuery,
+            hasResidence: (document.body.textContent || "").includes(expected.residence),
+          };
+        })()`,
+      );
+      if (mapLocation.ok) {
+        report.pass(`exact map ${expectedLocation.slug}`, expectedLocation.residence);
+      } else {
+        report.fail(`exact map ${expectedLocation.slug}`, JSON.stringify(mapLocation));
+      }
     }
 
     const badConsole = consoleIssues.filter(

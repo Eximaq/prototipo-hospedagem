@@ -15,9 +15,13 @@ export const houses: House[] = [
       "Famílias e grupos de até 14 pessoas que querem uma casa beira-mar com suítes independentes e apoio na rotina.",
     capacityNote: "Capacidade para até 14 pessoas",
     location: {
-      label: "São Miguel dos Milagres, AL",
-      mapQuery: "São Miguel dos Milagres Alagoas Brasil",
-      address: "Endereço exato informado no atendimento",
+      label: "Huna Residence, São Miguel dos Milagres, AL",
+      mapQuery: "-9.3054049,-35.4063443",
+      latitude: -9.3054049,
+      longitude: -35.4063443,
+      address: "Huna Residence, São Miguel dos Milagres, AL",
+      googleMapsUrl:
+        "https://www.google.com/maps/place/Huna+Residence/@-9.3053718,-35.408912,17z/data=!4m6!3m5!1s0x7011dcd726fd42d:0xc1f8738f69cec911!8m2!3d-9.3054049!4d-35.4063443!16s%2Fg%2F11sj54qrc9?entry=ttu&g_ep=EgoyMDI2MDgxNy4wIKXMDSoASAFQAw%3D%3D",
       distances: [
         { label: "Praia", value: "Beira-mar" },
         { label: "Vilinha Marceneiro / restaurantes", value: "1 km da casa" },
@@ -199,9 +203,13 @@ export const houses: House[] = [
       "Famílias e grupos de até 8 pessoas que querem privacidade na casa e estrutura de lazer no condomínio.",
     capacityNote: "Capacidade para até 8 pessoas",
     location: {
-      label: "São Miguel dos Milagres, AL",
-      mapQuery: "São Miguel dos Milagres Alagoas Brasil",
-      address: "Endereço exato informado no atendimento",
+      label: "Naluum Residence, São Miguel dos Milagres, AL",
+      mapQuery: "-9.2933771,-35.3972914",
+      latitude: -9.2933771,
+      longitude: -35.3972914,
+      address: "Naluum Residence, São Miguel dos Milagres, AL",
+      googleMapsUrl:
+        "https://www.google.com/maps/place/Naluum+Residence/@-9.2933771,-35.3998717,17z/data=!3m1!4b1!4m6!3m5!1s0x7011dcd539c8577:0x8ff0cf12f81d5640!8m2!3d-9.2933771!4d-35.3972914!16s%2Fg%2F11pphh5x1z?entry=ttu&g_ep=EgoyMDI2MDgxNy4wIKXMDSoASAFQAw%3D%3D",
       distances: [
         { label: "Praia", value: "Acesso pelo condomínio, 200 m da casa" },
         { label: "Vilinha Marceneiro / restaurantes", value: "500 m da casa" },

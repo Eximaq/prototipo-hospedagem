@@ -29,6 +29,11 @@ import { trackEvent } from "@/lib/analytics";
 import { isRangeAvailableFromRanges } from "@/lib/availability/merge";
 import { birthDateInputToISO, formatBirthDateInput } from "@/lib/birth-date";
 import { formatCPF, isValidCPF } from "@/lib/cpf";
+import {
+  getGuestTotal,
+  normalizeGuestCount,
+  type NumericInputValue,
+} from "@/lib/guest-count";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import type { AvailabilityRange, PublicHouseAvailability } from "@/lib/availability/types";
 
@@ -53,8 +58,8 @@ type FormState = {
   houseSlug: string;
   checkIn: string;
   checkOut: string;
-  adults: number;
-  children: number;
+  adults: NumericInputValue;
+  children: NumericInputValue;
   responsibleName: string;
   cpf: string;
   birthDate: string;
@@ -99,12 +104,12 @@ function getGuestRuleError(house: BookingHouseOption | undefined, totalGuests: n
 }
 
 function normalizeGuestCountsForHouse(
-  adults: number,
-  children: number,
+  adults: NumericInputValue,
+  children: NumericInputValue,
   house?: BookingHouseOption,
 ) {
-  const safeAdults = Math.max(1, Math.trunc(adults) || 1);
-  const safeChildren = Math.max(0, Math.trunc(children) || 0);
+  const safeAdults = normalizeGuestCount(adults, 1);
+  const safeChildren = normalizeGuestCount(children, 0);
 
   if (!house?.guests) {
     return { adults: safeAdults, children: safeChildren };
@@ -211,7 +216,15 @@ export function AvailabilityForm({
   const isHorizontal = layout === "horizontal";
   const today = getTodayISO();
   const nights = calculateNights(form.checkIn, form.checkOut);
-  const totalGuests = form.adults + form.children;
+  const totalGuests = getGuestTotal(form.adults, form.children);
+  const adultRuleError =
+    form.adults !== "" && (!Number.isInteger(form.adults) || form.adults < 1)
+      ? "Informe pelo menos 1 adulto."
+      : undefined;
+  const childrenRuleError =
+    form.children !== "" && (!Number.isInteger(form.children) || form.children < 0)
+      ? "Informe uma quantidade válida."
+      : undefined;
   const hasValidRange = Boolean(
     form.checkIn &&
     form.checkOut &&
@@ -225,15 +238,18 @@ export function AvailabilityForm({
   );
   const stayRuleLabel = getStayRuleLabel(selectedHouse);
   const stayRuleError = hasValidRange ? getStayRuleError(selectedHouse, nights) : undefined;
-  const guestRuleError = getGuestRuleError(selectedHouse, totalGuests);
+  const guestRuleError =
+    totalGuests === null ? undefined : getGuestRuleError(selectedHouse, totalGuests);
   const canContinueToContact = Boolean(
     selectedHouse &&
     hasValidRange &&
     !hasAvailabilityConflict &&
     !stayRuleError &&
     !guestRuleError &&
-    form.adults >= 1 &&
-    form.children >= 0,
+    !adultRuleError &&
+    !childrenRuleError &&
+    form.adults !== "" &&
+    form.children !== "",
   );
 
   useEffect(() => {
@@ -267,25 +283,22 @@ export function AvailabilityForm({
     setErrors((current) => ({ ...current, houseSlug: undefined, calendar: undefined }));
   }
 
-  function updateGuests(field: "adults" | "children", value: number) {
-    const baseValue = Number.isFinite(value) ? Math.trunc(value) : 0;
-
-    setForm((current) => {
-      const guests = normalizeGuestCountsForHouse(
-        field === "adults" ? baseValue : current.adults,
-        field === "children" ? baseValue : current.children,
-        selectedHouse,
-      );
-      return {
-        ...current,
-        ...guests,
-      };
-    });
+  function updateGuests(field: "adults" | "children", value: NumericInputValue) {
+    setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({
       ...current,
       [field]: undefined,
       guests: undefined,
     }));
+  }
+
+  function commitGuestField(field: "adults" | "children") {
+    const minimum = field === "adults" ? 1 : 0;
+    setForm((current) => ({
+      ...current,
+      [field]: normalizeGuestCount(current[field], minimum),
+    }));
+    setErrors((current) => ({ ...current, [field]: undefined }));
   }
 
   function updateResponsibleField(
@@ -349,9 +362,14 @@ export function AvailabilityForm({
     }
     const stayError = getStayRuleError(selectedHouse, nights);
     if (stayError) nextErrors.calendar = stayError;
-    if (form.adults < 1) nextErrors.adults = "Informe pelo menos 1 adulto.";
-    if (form.children < 0) nextErrors.children = "Informe uma quantidade válida.";
-    const guestError = getGuestRuleError(selectedHouse, totalGuests);
+    if (form.adults === "" || adultRuleError) {
+      nextErrors.adults = adultRuleError || "Informe pelo menos 1 adulto.";
+    }
+    if (form.children === "" || childrenRuleError) {
+      nextErrors.children = childrenRuleError || "Informe a quantidade de crianças.";
+    }
+    const guestError =
+      totalGuests === null ? undefined : getGuestRuleError(selectedHouse, totalGuests);
     if (guestError) nextErrors.guests = guestError;
     if (form.responsibleName.trim().split(/\s+/).length < 2) {
       nextErrors.responsibleName = "Informe seu nome completo.";
@@ -375,7 +393,9 @@ export function AvailabilityForm({
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!validate() || !selectedHouse) return;
+    if (!validate() || !selectedHouse || form.adults === "" || form.children === "") {
+      return;
+    }
     const birthDateISO = birthDateInputToISO(form.birthDate);
 
     trackEvent("click_whatsapp", {
@@ -402,7 +422,7 @@ export function AvailabilityForm({
   }
 
   const inputClass =
-    "mt-1.5 min-h-11 w-full rounded-sm border border-[var(--color-line)] bg-[var(--color-shell)] px-3 text-sm text-[var(--color-ink)] outline-none transition focus:border-[var(--color-copper)] focus:ring-2 focus:ring-[var(--color-copper)]/20";
+    "mt-1.5 min-h-11 w-full rounded-sm border border-[var(--color-line)] bg-[var(--color-shell)] px-3 text-base text-[var(--color-ink)] outline-none transition focus:border-[var(--color-copper)] focus:ring-2 focus:ring-[var(--color-copper)]/20 sm:text-sm";
 
   return (
     <form
@@ -515,12 +535,13 @@ export function AvailabilityForm({
             childGuests={form.children}
             maxGuests={selectedHouse?.guests ?? null}
             errors={{
-              adults: errors.adults,
-              children: errors.children,
+              adults: errors.adults || adultRuleError,
+              children: errors.children || childrenRuleError,
               guests: errors.guests || guestRuleError,
             }}
             inputClassName={inputClass}
             onChange={updateGuests}
+            onBlur={commitGuestField}
           />
 
           {canContinueToContact ? (
@@ -588,8 +609,8 @@ function BookingSelectionSummary({
   checkIn: string;
   checkOut: string;
   nights: number;
-  adults: number;
-  childGuests: number;
+  adults: NumericInputValue;
+  childGuests: NumericInputValue;
   hasValidRange: boolean;
   hasAvailabilityConflict: boolean;
   stayRuleLabel: string;
@@ -626,11 +647,17 @@ function BookingSelectionSummary({
         />
         <SummaryItem
           label="Adultos"
-          value={`${adults} adulto${adults === 1 ? "" : "s"}`}
+          value={
+            adults === "" ? "Não informado" : `${adults} adulto${adults === 1 ? "" : "s"}`
+          }
         />
         <SummaryItem
           label="Crianças"
-          value={`${childGuests} criança${childGuests === 1 ? "" : "s"}`}
+          value={
+            childGuests === ""
+              ? "Não informado"
+              : `${childGuests} criança${childGuests === 1 ? "" : "s"}`
+          }
         />
       </div>
       {hasValidRange ? (

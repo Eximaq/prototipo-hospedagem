@@ -1,4 +1,15 @@
 const configuredPublicUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") || "";
+const whatsappNumber = "5582982126658";
+
+function formatBrazilianPhone(value: string) {
+  const countryCode = value.slice(0, 2);
+  const areaCode = value.slice(2, 4);
+  const subscriberNumber = value.slice(4);
+  const prefix = subscriberNumber.slice(0, -4);
+  const suffix = subscriberNumber.slice(-4);
+
+  return `+${countryCode} (${areaCode}) ${prefix}-${suffix}`;
+}
 
 export const siteConfig = {
   name: "CASAS MILAGRES",
@@ -6,8 +17,8 @@ export const siteConfig = {
   url: configuredPublicUrl,
   description:
     "Casas para temporada em São Miguel dos Milagres, com piscina, suítes, privacidade e consulta de disponibilidade pelo WhatsApp.",
-  whatsappNumber: "5582993563898",
-  phone: "+55 (82) 99356-3898",
+  whatsappNumber,
+  phone: formatBrazilianPhone(whatsappNumber),
   email: "reservas@casasmilagres.com.br",
   instagram: "https://www.instagram.com/casa_turquesa05",
   address: "São Miguel dos Milagres, AL",
