@@ -1,4 +1,4 @@
-name: Sincronizar disponibilidade e publicar
+name: Sincronizar disponibilidade e validar build
 
 on:
   workflow_dispatch:
@@ -7,13 +7,11 @@ on:
     - cron: "17 * * * *"
 
 concurrency:
-  group: github-pages-availability
+  group: availability-sync
   cancel-in-progress: false
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   build:
@@ -22,7 +20,6 @@ jobs:
     env:
       CASA_TURQUESA_ICAL_URL: ${{ secrets.CASA_TURQUESA_ICAL_URL }}
       CASA_CORAIS_ICAL_URL: ${{ secrets.CASA_CORAIS_ICAL_URL }}
-      NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -44,23 +41,3 @@ jobs:
 
       - name: Gerar site estático
         run: npm run build
-
-      - name: Configurar GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Enviar artefato estático
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: out
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Publicar no GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
