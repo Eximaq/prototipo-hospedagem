@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { Cormorant_Garamond, Geist } from "next/font/google";
 import { FloatingWhatsApp } from "@/components/layout/floating-whatsapp";
 import { Footer } from "@/components/layout/footer";
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Footer />
         <FloatingWhatsApp />
       </body>
+      <GoogleAnalytics gaId="G-2Z3B47C8LR" />
     </html>
   );
 }
