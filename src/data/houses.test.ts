@@ -36,3 +36,31 @@ describe("house locations", () => {
     },
   );
 });
+
+describe("house stay and staff rules", () => {
+  it("keeps Casa Turquesa at a 4-night minimum with no maximum", () => {
+    const house = houses.find((entry) => entry.slug === "casa-turquesa-05");
+
+    expect(house?.minNights).toBe(4);
+    expect(house?.maxNights).toBeNull();
+    expect(house?.policies).toContainEqual({
+      label: "Noites máximas",
+      value: "Sem limite máximo de noites",
+    });
+    expect(house?.amenities.join(" ")).toContain("Duas funcionárias");
+    expect(house?.amenities.join(" ")).toContain("das 8h às 15h");
+  });
+
+  it("keeps Casa Corais at a 2-night minimum with no maximum", () => {
+    const house = houses.find((entry) => entry.slug === "casa-corais-milagres");
+
+    expect(house?.minNights).toBe(2);
+    expect(house?.maxNights).toBeNull();
+    expect(house?.policies).toContainEqual({
+      label: "Noites máximas",
+      value: "Sem limite máximo de noites",
+    });
+    expect(house?.amenities.join(" ")).toContain("Uma funcionária");
+    expect(house?.amenities.join(" ")).toContain("das 8h às 15h");
+  });
+});
