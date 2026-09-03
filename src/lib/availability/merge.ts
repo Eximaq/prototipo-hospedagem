@@ -72,7 +72,7 @@ export function mergeAvailabilitySources(
     .map<AvailabilityRange>((reservation) => ({
       startDate: reservation.startDate,
       endDate: reservation.endDate,
-    }))
+    }));
   return mergeUnavailableRanges(ranges);
 }
 
@@ -132,5 +132,16 @@ export function isRangeAvailableFromRanges(
 
   return unavailableRanges.every(
     (range) => !rangesOverlap({ startDate: checkIn, endDate: checkOut }, range),
+  );
+}
+
+export function isUnavailableDateSelectableAsCheckoutFromRanges(
+  checkIn: string,
+  date: string,
+  unavailableRanges: AvailabilityRange[],
+) {
+  return (
+    isDateUnavailableFromRanges(date, unavailableRanges) &&
+    isRangeAvailableFromRanges(checkIn, date, unavailableRanges)
   );
 }
