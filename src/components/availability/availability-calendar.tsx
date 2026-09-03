@@ -17,6 +17,7 @@ import {
 import {
   isDateUnavailableFromRanges,
   isRangeAvailableFromRanges,
+  isUnavailableDateSelectableAsCheckoutFromRanges,
 } from "@/lib/availability/merge";
 import { cn } from "@/lib/format";
 import type { AvailabilityRange } from "@/lib/availability/types";
@@ -110,9 +111,11 @@ export function AvailabilityCalendar({
 
   function selectDate(date: string) {
     const unavailable = isDateUnavailableFromRanges(date, unavailableRanges);
-    if (compareISODate(date, minDate) < 0 || unavailable) return;
+    if (compareISODate(date, minDate) < 0) return;
 
-    if (!checkIn || checkOut || compareISODate(date, checkIn) <= 0) {
+    const selectingCheckIn = !checkIn || checkOut || compareISODate(date, checkIn) <= 0;
+    if (selectingCheckIn) {
+      if (unavailable) return;
       onChange({ checkIn: date, checkOut: "" });
       return;
     }
@@ -149,7 +152,7 @@ export function AvailabilityCalendar({
           </p>
           <p className="mt-1 text-sm text-[var(--color-muted)]">
             {hasUnavailableRanges
-              ? "Selecione entrada e saída sem atravessar datas indisponíveis."
+              ? "Selecione entrada e saída sem atravessar datas indisponíveis. O início da próxima reserva pode ser usado como checkout."
               : "Selecione entrada e saída para consultar a estadia."}
           </p>
         </div>
@@ -282,12 +285,24 @@ function DayButton({
   onDayKeyDown: (event: KeyboardEvent<HTMLButtonElement>, date: string) => void;
 }) {
   const unavailable = isDateUnavailableFromRanges(date, unavailableRanges);
+  const checkoutBoundary = Boolean(
+    checkIn &&
+      !checkOut &&
+      compareISODate(date, checkIn) > 0 &&
+      isUnavailableDateSelectableAsCheckoutFromRanges(checkIn, date, unavailableRanges),
+  );
   const past = compareISODate(date, minDate) < 0;
   const selectedStart = date === checkIn;
   const selectedEnd = date === checkOut;
   const inRange = Boolean(checkIn && checkOut && isBetween(date, checkIn, checkOut));
-  const disabled = past || unavailable;
-  const label = `${formatDateForDisplay(date)} ${unavailable ? "indisponível" : "disponível"}`;
+  const disabled = past || (unavailable && !checkoutBoundary);
+  const label = `${formatDateForDisplay(date)} ${
+    checkoutBoundary
+      ? "disponível apenas para checkout"
+      : unavailable
+        ? "indisponível"
+        : "disponível"
+  }`;
 
   if (past) {
     return <span className="aspect-square min-h-8 sm:min-h-9" aria-hidden="true" />;
@@ -306,8 +321,12 @@ function DayButton({
         "aspect-square min-h-8 border text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-gold)] sm:min-h-9 sm:text-sm",
         disabled &&
           "cursor-not-allowed border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] opacity-55",
-        unavailable && "line-through decoration-[var(--color-copper)] decoration-2",
+        unavailable && !checkoutBoundary &&
+          "line-through decoration-[var(--color-copper)] decoration-2",
+        checkoutBoundary &&
+          "border-[var(--color-copper)] bg-[var(--color-soft)] text-[var(--color-ink)] ring-1 ring-inset ring-[var(--color-copper)]/35 hover:bg-white",
         !disabled &&
+          !checkoutBoundary &&
           !inRange &&
           !selectedStart &&
           !selectedEnd &&
