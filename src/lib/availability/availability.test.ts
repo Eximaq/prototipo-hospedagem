@@ -4,6 +4,7 @@ import {
   isDateAvailableFromRanges,
   isDateUnavailableFromRanges,
   isRangeAvailableFromRanges,
+  isUnavailableDateSelectableAsCheckoutFromRanges,
   mergeUnavailableRanges,
   mergeAvailabilitySources,
 } from "@/lib/availability/merge";
@@ -124,6 +125,19 @@ describe("availability merge", () => {
     expect(isRangeAvailableFromRanges("2026-09-10", "2026-09-25", ranges)).toBe(false);
     expect(isRangeAvailableFromRanges("2026-09-10", "2026-09-15", ranges)).toBe(true);
     expect(isRangeAvailableFromRanges("2026-09-20", "2026-09-25", ranges)).toBe(true);
+  });
+
+  it("allows the start of the next reservation to be used only as checkout", () => {
+    const ranges = [{ startDate: "2026-09-15", endDate: "2026-09-20" }];
+
+    expect(isDateUnavailableFromRanges("2026-09-15", ranges)).toBe(true);
+    expect(isRangeAvailableFromRanges("2026-09-10", "2026-09-15", ranges)).toBe(true);
+    expect(
+      isUnavailableDateSelectableAsCheckoutFromRanges("2026-09-10", "2026-09-15", ranges),
+    ).toBe(true);
+    expect(
+      isUnavailableDateSelectableAsCheckoutFromRanges("2026-09-16", "2026-09-18", ranges),
+    ).toBe(false);
   });
 
   it("rejects an occupied check-in and an invalid check-out", () => {
